@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": ".",
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": true,
+    "jsx": "preserve",
+    "module": "ESNext",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@conecta-agenda/types": ["../../packages/types/src/index.ts"],
+      "@conecta-agenda/ui": ["../../packages/ui/src/index.ts"],
+      "@conecta-agenda/utils": ["../../packages/utils/src/index.ts"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
