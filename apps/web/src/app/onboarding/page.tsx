@@ -106,9 +106,9 @@ export default function OnboardingPage() {
     try {
       await completeOnboarding(token, {
         ...data,
-        address: data.address || null,
-        description: data.description || null,
-        instagram: data.instagram || null,
+        address: data.address ?? "",
+        description: data.description ?? "",
+        instagram: data.instagram ?? "",
         timezone: "America/Sao_Paulo",
       });
       await refreshMe();

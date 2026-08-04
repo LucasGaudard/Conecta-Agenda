@@ -19,10 +19,18 @@ export const reservedBusinessSlugs = new Set([
 ]);
 
 const optionalTextSchema = z
-  .string()
-  .trim()
-  .optional()
-  .transform((value) => (value ? value : null));
+  .preprocess((value) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === "string") {
+      const trimmedValue = value.trim();
+      return trimmedValue.length > 0 ? trimmedValue : null;
+    }
+
+    return value;
+  }, z.string().nullable());
 
 const slugSchema = z
   .string()
