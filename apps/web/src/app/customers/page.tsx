@@ -115,7 +115,7 @@ export default function CustomersPage() {
     const payload = {
       name: data.name,
       whatsapp: data.whatsapp,
-      notes: data.notes || null,
+      notes: data.notes ?? "",
     };
 
     try {

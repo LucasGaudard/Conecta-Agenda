@@ -1,6 +1,7 @@
 import { DayOfWeek } from "@prisma/client";
 import { z } from "zod";
 
+import { optionalNullableTextSchema } from "./helpers";
 import { isAfterTime, isTimeWithinRange, isValidTime } from "../utils/time";
 
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horario deve estar em HH:mm.");
@@ -11,8 +12,8 @@ export const workingHourSchema = z
     isActive: z.boolean(),
     startTime: timeSchema,
     endTime: timeSchema,
-    breakStart: z.string().nullable().optional(),
-    breakEnd: z.string().nullable().optional(),
+    breakStart: optionalNullableTextSchema,
+    breakEnd: optionalNullableTextSchema,
   })
   .superRefine((value, context) => {
     const breakStart = value.breakStart || null;

@@ -178,8 +178,8 @@ export default function WorkingHoursPage() {
           isActive: hour.isActive,
           startTime: hour.startTime,
           endTime: hour.endTime,
-          breakStart: hour.breakStart || null,
-          breakEnd: hour.breakEnd || null,
+          breakStart: hour.breakStart ?? "",
+          breakEnd: hour.breakEnd ?? "",
         })),
       });
       setWorkingHours(sortWorkingHours(response.workingHours));
@@ -208,7 +208,7 @@ export default function WorkingHoursPage() {
         date: data.date,
         startTime: data.startTime,
         endTime: data.endTime,
-        reason: data.reason || null,
+        reason: data.reason ?? "",
       });
       reset({ date: "", startTime: "09:00", endTime: "10:00", reason: "" });
       setSuccess("Bloqueio criado com sucesso.");

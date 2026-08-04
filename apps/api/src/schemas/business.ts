@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { optionalNullableTextSchema } from "./helpers";
+
 export const reservedBusinessSlugs = new Set([
   "admin",
   "login",
@@ -17,20 +19,6 @@ export const reservedBusinessSlugs = new Set([
   "auth",
   "public",
 ]);
-
-const optionalTextSchema = z
-  .preprocess((value) => {
-    if (value === null || value === undefined) {
-      return null;
-    }
-
-    if (typeof value === "string") {
-      const trimmedValue = value.trim();
-      return trimmedValue.length > 0 ? trimmedValue : null;
-    }
-
-    return value;
-  }, z.string().nullable());
 
 const slugSchema = z
   .string()
@@ -52,12 +40,12 @@ const primaryColorSchema = z
 export const updateBusinessProfileSchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres."),
   slug: slugSchema,
-  description: optionalTextSchema,
-  whatsapp: optionalTextSchema,
-  city: optionalTextSchema,
-  address: optionalTextSchema,
-  instagram: optionalTextSchema,
-  logoUrl: optionalTextSchema,
+  description: optionalNullableTextSchema,
+  whatsapp: optionalNullableTextSchema,
+  city: optionalNullableTextSchema,
+  address: optionalNullableTextSchema,
+  instagram: optionalNullableTextSchema,
+  logoUrl: optionalNullableTextSchema,
   primaryColor: primaryColorSchema.default("#111827"),
   timezone: z.string().trim().default("America/Sao_Paulo"),
   currency: z.string().trim().default("BRL"),

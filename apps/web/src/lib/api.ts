@@ -36,14 +36,26 @@ export async function apiFetch<TResponse>(
   { token, headers, ...options }: ApiFetchOptions = {},
 ) {
   const apiUrl = getApiBaseUrl();
-  const response = await fetch(`${apiUrl}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiUrl}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name !== "TypeError") {
+      throw error;
+    }
+
+    throw new Error(
+      "Nao foi possivel conectar a API. Verifique sua conexao ou tente novamente.",
+    );
+  }
 
   const contentType = response.headers.get("content-type");
   const data = contentType?.includes("application/json")

@@ -144,7 +144,7 @@ export default function ServicesPage() {
 
     const payload = {
       name: data.name,
-      description: data.description || null,
+      description: data.description ?? "",
       priceInCents: reaisToCents(data.price),
       durationMinutes: data.durationMinutes,
       isActive: data.isActive,

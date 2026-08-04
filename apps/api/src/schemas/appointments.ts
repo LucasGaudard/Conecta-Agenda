@@ -1,6 +1,8 @@
 import { AppointmentStatus } from "@prisma/client";
 import { z } from "zod";
 
+import { optionalNullableTextSchema, optionalTrimmedTextSchema } from "./helpers";
+
 const dateSchema = z.string().date("Data invalida.");
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horario deve estar em HH:mm.");
 
@@ -22,7 +24,7 @@ export const appointmentsQuerySchema = z
 export const appointmentAvailableTimesQuerySchema = z.object({
   serviceId: z.string().trim().min(1, "Servico obrigatorio."),
   date: dateSchema,
-  ignoreAppointmentId: z.string().trim().min(1).optional(),
+  ignoreAppointmentId: optionalTrimmedTextSchema,
 });
 
 export const createAppointmentSchema = z
@@ -30,14 +32,10 @@ export const createAppointmentSchema = z
     serviceId: z.string().trim().min(1, "Servico obrigatorio."),
     date: dateSchema,
     startTime: timeSchema,
-    customerId: z.string().trim().min(1).optional(),
-    customerName: z.string().trim().optional(),
-    customerWhatsapp: z.string().trim().optional(),
-    notes: z
-      .string()
-      .trim()
-      .optional()
-      .transform((value) => (value ? value : null)),
+    customerId: optionalTrimmedTextSchema,
+    customerName: optionalTrimmedTextSchema,
+    customerWhatsapp: optionalTrimmedTextSchema,
+    notes: optionalNullableTextSchema,
   })
   .refine((data) => data.customerId || (data.customerName && data.customerName.length >= 2), {
     message: "Informe um cliente existente ou o nome do cliente.",

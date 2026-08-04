@@ -164,7 +164,7 @@ export default function PublicBusinessPage() {
         startTime: selectedTime,
         customerName: customerData.customerName,
         customerWhatsapp: customerData.customerWhatsapp,
-        notes: customerData.notes || null,
+        notes: customerData.notes ?? "",
       });
       setAppointmentResponse(response);
       setStep("success");

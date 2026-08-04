@@ -239,7 +239,7 @@ export default function AgendaPage() {
         customerId: createForm.customerId || undefined,
         customerName: createForm.customerId ? undefined : createForm.customerName,
         customerWhatsapp: createForm.customerId ? undefined : createForm.customerWhatsapp,
-        notes: createForm.notes || null,
+        notes: createForm.notes,
       });
 
       setSuccess("Agendamento criado com sucesso.");

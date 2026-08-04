@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { optionalNullableTextSchema } from "./helpers";
+
 export const serviceStatusQuerySchema = z
   .object({
     status: z.enum(["active", "inactive", "all"]).default("all"),
@@ -15,11 +17,7 @@ export const serviceParamsSchema = z.object({
 
 export const serviceBodySchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres."),
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .transform((value) => (value ? value : null)),
+  description: optionalNullableTextSchema,
   priceInCents: z.coerce.number().int().min(0, "Preco deve ser maior ou igual a zero."),
   durationMinutes: z.coerce
     .number()

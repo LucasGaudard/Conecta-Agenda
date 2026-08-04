@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { optionalNullableTextSchema } from "./helpers";
+
 export const customersQuerySchema = z.object({
   search: z.string().trim().optional(),
 });
@@ -11,9 +13,5 @@ export const customerParamsSchema = z.object({
 export const customerBodySchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres."),
   whatsapp: z.string().trim().min(8, "WhatsApp deve ser informado."),
-  notes: z
-    .string()
-    .trim()
-    .optional()
-    .transform((value) => (value ? value : null)),
+  notes: optionalNullableTextSchema,
 });

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { optionalNullableTextSchema } from "./helpers";
+
 const dateSchema = z.string().date("Data invalida.");
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Horario deve estar em HH:mm.");
 
@@ -32,7 +34,7 @@ export const createPublicAppointmentSchema = z
     startTime: timeSchema,
     customerName: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres."),
     customerWhatsapp: z.string().trim().min(8, "WhatsApp deve ser informado."),
-    notes: z.string().trim().optional().transform((value) => (value ? value : null)),
+    notes: optionalNullableTextSchema,
   })
   .refine((data) => data.date >= getToday(), {
     message: "Nao e possivel agendar em uma data passada.",

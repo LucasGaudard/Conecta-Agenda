@@ -136,12 +136,12 @@ export default function ProfilePage() {
     try {
       await updateBusinessProfile(token, {
         ...data,
-        description: data.description || null,
-        whatsapp: data.whatsapp || null,
-        city: data.city || null,
-        address: data.address || null,
-        instagram: data.instagram || null,
-        logoUrl: data.logoUrl || null,
+        description: data.description ?? "",
+        whatsapp: data.whatsapp ?? "",
+        city: data.city ?? "",
+        address: data.address ?? "",
+        instagram: data.instagram ?? "",
+        logoUrl: data.logoUrl ?? "",
       });
       await refreshMe();
       setSlugEdited(false);
