@@ -10,10 +10,9 @@ import { Button } from "@conecta-agenda/ui";
 
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
+import { getPublicAppUrl } from "@/lib/config";
 import { completeOnboarding, getOnboardingStatus } from "@/lib/onboarding";
 import { generateSlug } from "@/lib/slug";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 const onboardingSchema = z.object({
   name: z.string().min(2, "Informe o nome do negocio."),
@@ -165,7 +164,7 @@ export default function OnboardingPage() {
           </Field>
 
           <div className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            {APP_URL}/{slug || "seu-slug"}
+            {getPublicAppUrl()}/{slug || "seu-slug"}
           </div>
 
           <Field label="WhatsApp" error={errors.whatsapp?.message}>

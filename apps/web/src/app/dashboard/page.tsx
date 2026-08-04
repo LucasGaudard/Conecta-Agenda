@@ -21,6 +21,7 @@ import { Button } from "@conecta-agenda/ui";
 import { AppShell } from "@/components/app/app-shell";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
+import { getPublicAppUrl } from "@/lib/config";
 import { getDashboard } from "@/lib/dashboard";
 import { formatCurrencyBRL, formatDateBR } from "@/lib/format";
 import { createReminderMessage, createWhatsappLink } from "@/lib/whatsapp";
@@ -31,8 +32,6 @@ type SummaryCardProps = {
   description: string;
   icon: React.ComponentType<{ className?: string }>;
 };
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 function SummaryCard({ title, value, description, icon: Icon }: SummaryCardProps) {
   return (
@@ -91,7 +90,7 @@ export default function DashboardPage() {
       return "";
     }
 
-    return `${APP_URL}${dashboard.publicLinkPath}`;
+    return `${getPublicAppUrl()}${dashboard.publicLinkPath}`;
   }, [dashboard]);
 
   async function handleCopyLink() {

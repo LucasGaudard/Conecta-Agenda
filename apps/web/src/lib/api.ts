@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+import { getApiBaseUrl } from "./config";
 
 type ApiFetchOptions = RequestInit & {
   token?: string | null;
@@ -35,7 +35,8 @@ export async function apiFetch<TResponse>(
   path: string,
   { token, headers, ...options }: ApiFetchOptions = {},
 ) {
-  const response = await fetch(`${API_URL}${path}`, {
+  const apiUrl = getApiBaseUrl();
+  const response = await fetch(`${apiUrl}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
