@@ -12,29 +12,37 @@ model User {
   name         String
   email        String        @unique
   passwordHash String
+  role         UserRole      @default(PROFESSIONAL)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  business     Business?
-  subscription Subscription?
+  business          Business?
+  subscription      Subscription?
+  blockedBusinesses Business[]     @relation("BusinessBlockedBy")
 }
 
 model Business {
-  id           String    @id @default(cuid())
-  userId       String    @unique
-  name         String
-  slug         String    @unique
-  description  String?
-  whatsapp     String?
-  city         String?
-  address      String?
-  instagram    String?
-  logoUrl      String?
-  primaryColor String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  name                String
+  slug                String    @unique
+  description         String?
+  whatsapp            String?
+  city                String?
+  address             String?
+  instagram           String?
+  logoUrl             String?
+  primaryColor        String?
+  isManuallyBlocked   Boolean   @default(false)
+  blockReason         String?
+  blockedAt           DateTime?
+  blockedByUserId     String?
+  accessOverrideUntil DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blockedBy     User?             @relation("BusinessBlockedBy", fields: [blockedByUserId], references: [id], onDelete: SetNull)
   settings      BusinessSettings?
   services      Service[]
   customers     Customer[]
@@ -42,6 +50,8 @@ model Business {
   workingHours  WorkingHour[]
   blockedTimes  BlockedTime[]
   notifications Notification[]
+
+  @@index([blockedByUserId])
 }
 
 model BusinessSettings {
@@ -213,6 +223,11 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
   EXPIRED
+}
+
+enum UserRole {
+  PROFESSIONAL
+  SUPER_ADMIN
 }
 
 enum DayOfWeek {

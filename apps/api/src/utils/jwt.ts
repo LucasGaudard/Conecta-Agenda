@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { UserRole } from "@prisma/client";
 
 import { env } from "../env";
 
@@ -6,7 +7,8 @@ const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 export type AuthTokenPayload = {
   userId: string;
-  businessId: string;
+  businessId?: string | null;
+  role?: UserRole;
 };
 
 type JwtPayload = AuthTokenPayload & {
@@ -68,7 +70,6 @@ export function verifyAuthToken(token: string): AuthTokenPayload {
 
   if (
     !payload.userId ||
-    !payload.businessId ||
     payload.exp < Math.floor(Date.now() / 1000)
   ) {
     throw new Error("Invalid token payload.");
@@ -76,6 +77,7 @@ export function verifyAuthToken(token: string): AuthTokenPayload {
 
   return {
     userId: payload.userId,
-    businessId: payload.businessId,
+    businessId: payload.businessId ?? null,
+    role: payload.role,
   };
 }

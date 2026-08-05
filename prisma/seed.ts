@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { DayOfWeek, PrismaClient, SubscriptionStatus } from "@prisma/client";
+import { DayOfWeek, PrismaClient, SubscriptionStatus, UserRole } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -71,11 +71,13 @@ async function main() {
     update: {
       name: "Admin Teste",
       passwordHash,
+      role: UserRole.PROFESSIONAL,
     },
     create: {
       name: "Admin Teste",
       email: "admin@conectaagenda.com",
       passwordHash,
+      role: UserRole.PROFESSIONAL,
     },
   });
 
@@ -215,6 +217,35 @@ async function main() {
       },
     });
   }
+
+  await seedSuperAdmin();
+}
+
+async function seedSuperAdmin() {
+  const name = process.env.SUPER_ADMIN_NAME?.trim();
+  const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!name || !email || !password) {
+    return;
+  }
+
+  const superAdminPasswordHash = await bcrypt.hash(password, 10);
+
+  await prisma.user.upsert({
+    where: { email },
+    update: {
+      name,
+      passwordHash: superAdminPasswordHash,
+      role: UserRole.SUPER_ADMIN,
+    },
+    create: {
+      name,
+      email,
+      passwordHash: superAdminPasswordHash,
+      role: UserRole.SUPER_ADMIN,
+    },
+  });
 }
 
 main()

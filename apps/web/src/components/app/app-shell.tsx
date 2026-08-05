@@ -35,10 +35,19 @@ export function AppShell({
     if (!loading && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, loading, router]);
+
+    if (!loading && user?.role === "SUPER_ADMIN") {
+      router.replace("/admin");
+    }
+  }, [isAuthenticated, loading, router, user?.role]);
 
   useEffect(() => {
     if (!requireOnboardingComplete) {
+      setCheckingOnboarding(false);
+      return;
+    }
+
+    if (user?.role === "SUPER_ADMIN") {
       setCheckingOnboarding(false);
       return;
     }
@@ -64,14 +73,21 @@ export function AppShell({
       .finally(() => {
         setCheckingOnboarding(false);
       });
-  }, [isAuthenticated, loading, logout, requireOnboardingComplete, router, token]);
+  }, [isAuthenticated, loading, logout, requireOnboardingComplete, router, token, user?.role]);
 
   function handleLogout() {
     logout();
     router.replace("/login");
   }
 
-  if (loading || checkingOnboarding || !isAuthenticated || !user || !business) {
+  if (
+    loading ||
+    checkingOnboarding ||
+    !isAuthenticated ||
+    !user ||
+    !business ||
+    user.role === "SUPER_ADMIN"
+  ) {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 py-12">
         <p className="text-sm text-slate-600">Carregando...</p>

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { Prisma, SubscriptionStatus } from "@prisma/client";
+import { Prisma, SubscriptionStatus, UserRole } from "@prisma/client";
 
 import { authenticate } from "../middlewares/auth";
 import { loginSchema, registerSchema } from "../schemas/auth";
@@ -7,18 +7,20 @@ import { prisma } from "../lib/prisma";
 import { comparePassword, hashPassword } from "../utils/password";
 import { signAuthToken } from "../utils/jwt";
 import { generateUniqueBusinessSlug } from "../utils/slug";
+import { resolveBusinessAccess, type BusinessAccessState } from "../domain/business-access";
 
 type AuthResponse = {
   user: {
     id: string;
     name: string;
     email: string;
+    role: UserRole;
   };
   business: {
     id: string;
     name: string;
     slug: string;
-  };
+  } | null;
   token: string;
 };
 
@@ -30,18 +32,20 @@ type AuthMeResponse = Omit<AuthResponse, "token"> & {
       slug: string;
     };
   } | null;
+  access: BusinessAccessState | null;
 };
 
 function formatAuthResponse(input: {
-  user: { id: string; name: string; email: string };
-  business: { id: string; name: string; slug: string };
+  user: { id: string; name: string; email: string; role: UserRole };
+  business: { id: string; name: string; slug: string } | null;
 }): AuthResponse {
   return {
     user: input.user,
     business: input.business,
     token: signAuthToken({
       userId: input.user.id,
-      businessId: input.business.id,
+      businessId: input.business?.id ?? null,
+      role: input.user.role,
     }),
   };
 }
@@ -88,11 +92,13 @@ export async function authRoutes(app: FastifyInstance) {
             name,
             email,
             passwordHash,
+            role: UserRole.PROFESSIONAL,
           },
           select: {
             id: true,
             name: true,
             email: true,
+            role: true,
           },
         });
 
@@ -157,6 +163,7 @@ export async function authRoutes(app: FastifyInstance) {
         id: true,
         name: true,
         email: true,
+        role: true,
         passwordHash: true,
         business: {
           select: {
@@ -171,7 +178,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (
       !user ||
       !(await comparePassword(password, user.passwordHash)) ||
-      !user.business
+      (user.role === UserRole.PROFESSIONAL && !user.business)
     ) {
       return reply.status(401).send({ message: "Credenciais invalidas." });
     }
@@ -182,8 +189,9 @@ export async function authRoutes(app: FastifyInstance) {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role,
         },
-        business: user.business,
+        business: user.business ?? null,
       }),
     );
   });
@@ -195,16 +203,21 @@ export async function authRoutes(app: FastifyInstance) {
         id: true,
         name: true,
         email: true,
+        role: true,
         business: {
           select: {
             id: true,
             name: true,
             slug: true,
+            isManuallyBlocked: true,
+            accessOverrideUntil: true,
           },
         },
         subscription: {
           select: {
             status: true,
+            trialEndsAt: true,
+            currentPeriodEnd: true,
             plan: {
               select: {
                 name: true,
@@ -216,18 +229,40 @@ export async function authRoutes(app: FastifyInstance) {
       },
     });
 
-    if (!user?.business) {
+    if (!user || (user.role === UserRole.PROFESSIONAL && !user.business)) {
       return reply.status(401).send({ message: "Token ausente ou invalido." });
     }
+
+    const access =
+      user.business
+        ? resolveBusinessAccess({
+            isManuallyBlocked: user.business.isManuallyBlocked,
+            accessOverrideUntil: user.business.accessOverrideUntil,
+            subscription: user.subscription,
+          })
+        : null;
 
     const response: AuthMeResponse = {
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
-      business: user.business,
-      subscription: user.subscription,
+      business: user.business
+        ? {
+            id: user.business.id,
+            name: user.business.name,
+            slug: user.business.slug,
+          }
+        : null,
+      subscription: user.subscription
+        ? {
+            status: user.subscription.status,
+            plan: user.subscription.plan,
+          }
+        : null,
+      access,
     };
 
     return reply.send(response);

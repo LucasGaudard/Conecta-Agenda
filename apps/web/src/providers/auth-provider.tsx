@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const setSession = useCallback(
-    (nextToken: string, nextUser: AuthUser, nextBusiness: AuthBusiness) => {
+    (nextToken: string, nextUser: AuthUser, nextBusiness: AuthBusiness | null) => {
       storeToken(nextToken);
       setToken(nextToken);
       setUser(nextUser);
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       business,
       token,
       loading,
-      isAuthenticated: Boolean(token && user && business),
+      isAuthenticated: Boolean(token && user),
       login,
       register,
       refreshMe,

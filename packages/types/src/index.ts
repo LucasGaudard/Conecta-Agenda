@@ -9,6 +9,7 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
 };
 
 export type AuthBusiness = {
@@ -27,14 +28,15 @@ export type AuthSubscription = {
 
 export type AuthResponse = {
   user: AuthUser;
-  business: AuthBusiness;
+  business: AuthBusiness | null;
   token: string;
 };
 
 export type AuthMeResponse = {
   user: AuthUser;
-  business: AuthBusiness;
+  business: AuthBusiness | null;
   subscription: AuthSubscription | null;
+  access: BusinessAccessState | null;
 };
 
 export type DashboardSummary = {
@@ -64,6 +66,120 @@ export type DashboardResponse = {
   nextAppointment: DashboardAppointment | null;
   tomorrowAppointments: DashboardAppointment[];
   publicLinkPath: string;
+};
+
+export type UserRole = "PROFESSIONAL" | "SUPER_ADMIN";
+
+export type BusinessAccessStatus =
+  | "ACTIVE"
+  | "TRIAL"
+  | "OVERRIDE_ACTIVE"
+  | "PAYMENT_ATTENTION"
+  | "MANUALLY_BLOCKED"
+  | "EXPIRED";
+
+export type BusinessAccessState = {
+  status: BusinessAccessStatus;
+  canAccess: boolean;
+  reason: string;
+  requiresPaymentAttention: boolean;
+};
+
+export type AdminOverviewResponse = {
+  totalProfessionals: number;
+  totalBusinesses: number;
+  activeSubscriptions: number;
+  trialingSubscriptions: number;
+  pastDueSubscriptions: number;
+  canceledSubscriptions: number;
+  manuallyBlockedBusinesses: number;
+  registrationsThisMonth: number;
+};
+
+export type AdminBusinessOwner = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type AdminBusinessPlan = {
+  id: string;
+  name: string;
+  slug: string;
+  priceInCents: number;
+};
+
+export type AdminBusinessSubscription = {
+  id: string;
+  status: string;
+  currentPeriodEnd: string | null;
+  trialEndsAt: string | null;
+  plan: AdminBusinessPlan;
+} | null;
+
+export type AdminBusinessListItem = {
+  id: string;
+  name: string;
+  slug: string;
+  whatsapp: string | null;
+  city: string | null;
+  createdAt: string;
+  isManuallyBlocked: boolean;
+  blockReason: string | null;
+  blockedAt: string | null;
+  accessOverrideUntil: string | null;
+  owner: AdminBusinessOwner;
+  subscription: AdminBusinessSubscription;
+  access: BusinessAccessState;
+};
+
+export type AdminBusinessesResponse = {
+  businesses: AdminBusinessListItem[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type AdminBusinessDetails = AdminBusinessListItem & {
+  description: string | null;
+  address: string | null;
+  instagram: string | null;
+  logoUrl: string | null;
+  primaryColor: string | null;
+  settings: BusinessSettingsDTO;
+  counts: {
+    services: number;
+    customers: number;
+    appointments: number;
+  };
+};
+
+export type AdminBusinessDetailsResponse = {
+  business: AdminBusinessDetails;
+};
+
+export type AdminBusinessAccessResponse = {
+  business: AdminBusinessListItem;
+};
+
+export type UpdateBusinessAccessRequest = {
+  isManuallyBlocked: boolean;
+  blockReason?: string | null;
+  accessOverrideUntil?: string | null;
+};
+
+export type CreateAdminBusinessRequest = {
+  ownerName: string;
+  ownerEmail: string;
+  temporaryPassword: string;
+  businessName: string;
+  whatsapp?: string | null;
+  city?: string | null;
+  planSlug?: string;
+  accessOverrideUntil?: string | null;
 };
 
 export type FinanceSummaryResponse = {

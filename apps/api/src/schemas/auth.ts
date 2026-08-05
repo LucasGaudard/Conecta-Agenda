@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres."),
   businessName: z.string().trim().min(2).optional(),
   whatsapp: z.string().trim().min(8).optional(),
-});
+}).strict();
 
 export const loginSchema = z.object({
   email: z.string().trim().email("E-mail invalido.").toLowerCase(),

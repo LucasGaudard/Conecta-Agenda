@@ -3,6 +3,7 @@ import Fastify from "fastify";
 
 import { env } from "./env";
 import { appointmentsRoutes } from "./routes/appointments";
+import { adminRoutes } from "./routes/admin";
 import { authRoutes } from "./routes/auth";
 import { blockedTimesRoutes } from "./routes/blocked-times";
 import { businessRoutes } from "./routes/business";
@@ -26,6 +27,7 @@ export function buildApp() {
   });
 
   app.register(healthRoutes);
+  app.register(adminRoutes);
   app.register(authRoutes);
   app.register(dashboardRoutes);
   app.register(financeRoutes);

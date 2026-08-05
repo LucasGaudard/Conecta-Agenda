@@ -40,6 +40,11 @@ export default function LoginPage() {
 
     try {
       const response = await login(data);
+      if (response.user.role === "SUPER_ADMIN") {
+        router.push("/admin");
+        return;
+      }
+
       const onboarding = await getOnboardingStatus(response.token);
       router.push(onboarding.completed ? "/dashboard" : "/onboarding");
     } catch (requestError) {

@@ -41,7 +41,7 @@ export default function SettingsPage() {
       <div className="mx-auto w-full max-w-4xl space-y-5">
         {loading && <p className="rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600">Carregando configuracoes...</p>}
         {error && <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
-        {account && (
+        {account?.business && (
           <>
             <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3"><UserRound aria-hidden="true" className="size-5 text-slate-500" /><h2 className="text-lg font-semibold text-slate-950">Sua conta</h2></div>
