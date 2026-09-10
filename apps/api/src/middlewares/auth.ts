@@ -36,7 +36,8 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 
     if (
       user.role === UserRole.PROFESSIONAL &&
-      (!user.business || user.business.id !== payload.businessId)
+      user.business &&
+      user.business.id !== payload.businessId
     ) {
       return reply.status(401).send({ message: "Token ausente ou invalido." });
     }

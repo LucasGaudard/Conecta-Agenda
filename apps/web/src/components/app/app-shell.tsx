@@ -28,7 +28,10 @@ export function AppShell({
 }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { business, isAuthenticated, loading, logout, token, user } = useAuth();
+  const { access, business, isAuthenticated, loading, logout, token, user } = useAuth();
+  const billingPage =
+    pathname === "/billing-required" || pathname === "/settings/billing";
+  const blocked = user?.role === "PROFESSIONAL" && !access?.canAccess;
   const [checkingOnboarding, setCheckingOnboarding] = useState(requireOnboardingComplete);
 
   useEffect(() => {
@@ -36,13 +39,26 @@ export function AppShell({
       router.replace("/login");
     }
 
+    if (!loading && isAuthenticated && blocked && !billingPage)
+      router.replace("/billing-required");
+    if (!loading && access?.canAccess && pathname === "/billing-required")
+      router.replace("/dashboard");
     if (!loading && user?.role === "SUPER_ADMIN") {
       router.replace("/admin");
     }
-  }, [isAuthenticated, loading, router, user?.role]);
+  }, [
+    access?.canAccess,
+    billingPage,
+    blocked,
+    isAuthenticated,
+    loading,
+    pathname,
+    router,
+    user?.role,
+  ]);
 
   useEffect(() => {
-    if (!requireOnboardingComplete) {
+    if (!requireOnboardingComplete || billingPage || blocked) {
       setCheckingOnboarding(false);
       return;
     }
@@ -73,7 +89,17 @@ export function AppShell({
       .finally(() => {
         setCheckingOnboarding(false);
       });
-  }, [isAuthenticated, loading, logout, requireOnboardingComplete, router, token, user?.role]);
+  }, [
+    billingPage,
+    blocked,
+    isAuthenticated,
+    loading,
+    logout,
+    requireOnboardingComplete,
+    router,
+    token,
+    user?.role,
+  ]);
 
   function handleLogout() {
     logout();
@@ -85,7 +111,8 @@ export function AppShell({
     checkingOnboarding ||
     !isAuthenticated ||
     !user ||
-    !business ||
+    (!business && !billingPage) ||
+    (blocked && !billingPage) ||
     user.role === "SUPER_ADMIN"
   ) {
     return (
@@ -97,16 +124,32 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-slate-50 lg:flex">
-      <Sidebar pathname={pathname} />
+      {!blocked && <Sidebar pathname={pathname} />}
       <div className="min-w-0 flex-1">
         <Header
-          businessName={business.name}
+          accessBlocked={blocked}
+          businessName={business?.name ?? "Minha conta"}
           pageTitle={title ?? getPageTitle(pathname)}
           pathname={pathname}
           userName={user.name}
           onLogout={handleLogout}
         />
-        <main className="px-4 py-6 lg:px-8">{children}</main>
+        <main className="px-4 py-6 lg:px-8">
+          {access?.requiresPaymentAttention && access.canAccess && (
+            <div
+              role="status"
+              className="mb-6 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900"
+            >
+              Sua assinatura precisa de atenção.{" "}
+              {access.gracePeriodEndsAt &&
+                `Regularize até ${new Date(access.gracePeriodEndsAt).toLocaleString("pt-BR")}.`}{" "}
+              <a className="underline" href="/settings/billing">
+                Ver assinatura
+              </a>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

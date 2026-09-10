@@ -12,8 +12,12 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { useAuth } from "@/hooks/use-auth";
 import { getAdminBusinesses } from "@/lib/admin";
 
-const accessOptions: Array<{ label: string; value: "" | BusinessAccessStatus }> = [
+const accessOptions: Array<{
+  label: string;
+  value: "" | "ACCESS_ALLOWED" | BusinessAccessStatus;
+}> = [
   { label: "Todos", value: "" },
+  { label: "Acesso liberado", value: "ACCESS_ALLOWED" },
   { label: "Ativo", value: "ACTIVE" },
   { label: "Teste", value: "TRIAL" },
   { label: "Cortesia", value: "OVERRIDE_ACTIVE" },
@@ -167,9 +171,28 @@ export default function AdminBusinessesPage() {
                 <Cell label="Proprietario">{business.owner.name}</Cell>
                 <Cell label="E-mail">{business.owner.email}</Cell>
                 <Cell label="Plano">{business.subscription?.plan.name ?? "-"}</Cell>
-                <Cell label="Assinatura">{business.subscription?.status ?? "-"}</Cell>
+                <Cell label="Assinatura"><span className={business.subscription?.status === "PAST_DUE" ? "font-semibold text-red-700" : undefined}>{business.subscription?.status ?? "-"}</span></Cell>
                 <Cell label="Acesso">
                   <AccessBadge status={business.access.status} />
+                  <p>{business.access.canAccess ? "Liberado" : "Sem acesso"}</p>
+                  <p
+                    className={
+                      business.access.requiresPaymentAttention
+                        ? "text-red-700"
+                        : "text-slate-500"
+                    }
+                  >
+                    Atenção financeira:{" "}
+                    {business.access.requiresPaymentAttention ? "Sim" : "Não"}
+                  </p>
+                  {business.access.gracePeriodEndsAt && (
+                    <p>
+                      Tolerância:{" "}
+                      {new Date(business.access.gracePeriodEndsAt).toLocaleString(
+                        "pt-BR",
+                      )}
+                    </p>
+                  )}
                 </Cell>
                 <div className="flex xl:justify-end">
                   <Button asChild size="sm" variant="outline">

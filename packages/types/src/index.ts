@@ -79,6 +79,10 @@ export type BusinessAccessStatus =
   | "EXPIRED";
 
 export type BusinessAccessState = {
+  isManuallyBlocked: boolean;
+  accessOverrideUntil: string | null;
+  subscriptionStatus: string | null;
+  gracePeriodEndsAt: string | null;
   status: BusinessAccessStatus;
   canAccess: boolean;
   reason: string;
@@ -294,13 +298,7 @@ export type UpdateServiceRequest = {
 };
 
 export type DayOfWeek =
-  | "MONDAY"
-  | "TUESDAY"
-  | "WEDNESDAY"
-  | "THURSDAY"
-  | "FRIDAY"
-  | "SATURDAY"
-  | "SUNDAY";
+  "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
 
 export type WorkingHourDTO = {
   id: string;
@@ -389,11 +387,7 @@ export type CreateCustomerRequest = {
 export type UpdateCustomerRequest = CreateCustomerRequest;
 
 export type AppointmentStatus =
-  | "SCHEDULED"
-  | "CONFIRMED"
-  | "COMPLETED"
-  | "CANCELED"
-  | "NO_SHOW";
+  "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELED" | "NO_SHOW";
 
 export type AppointmentCustomerDTO = {
   id: string;
@@ -454,6 +448,8 @@ export type PublicBusinessSettingsDTO = {
 };
 
 export type PublicBusinessDTO = {
+  bookingAvailable: boolean;
+  accessMessage?: string;
   id: string;
   name: string;
   slug: string;
@@ -524,4 +520,24 @@ export type PublicAppointmentResponse = {
     name: string;
     whatsapp: string | null;
   };
+};
+
+export type BillingStatusResponse = BusinessAccessState & {
+  provider: "MERCADO_PAGO";
+  providerConfigured: boolean;
+  checkoutAvailable: boolean;
+  cancellationAvailable: boolean;
+  nextPaymentAt: string | null;
+  plan: { name: string; slug: string; priceInCents: number } | null;
+  priceInCents: number | null;
+  trialEndsAt: string | null;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  blockReason: string | null;
+};
+
+export type BillingCheckoutResponse = {
+  checkoutUrl: string;
+  provider: "MERCADO_PAGO";
+  subscriptionId: string;
 };

@@ -10,6 +10,7 @@ import { z } from "zod";
 import { Button } from "@conecta-agenda/ui";
 
 import { useAuth } from "@/hooks/use-auth";
+import { meRequest } from "@/lib/auth";
 import { getOnboardingStatus } from "@/lib/onboarding";
 
 const loginFormSchema = z.object({
@@ -45,6 +46,11 @@ export default function LoginPage() {
         return;
       }
 
+      const session = await meRequest(response.token);
+      if (!session.access?.canAccess) {
+        router.push("/billing-required");
+        return;
+      }
       const onboarding = await getOnboardingStatus(response.token);
       router.push(onboarding.completed ? "/dashboard" : "/onboarding");
     } catch (requestError) {

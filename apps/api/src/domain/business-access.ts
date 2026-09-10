@@ -1,5 +1,6 @@
 import { SubscriptionStatus } from "@prisma/client";
 
+import { env } from "../env";
 export type BusinessAccessStatus =
   | "ACTIVE"
   | "TRIAL"
@@ -7,12 +8,15 @@ export type BusinessAccessStatus =
   | "PAYMENT_ATTENTION"
   | "MANUALLY_BLOCKED"
   | "EXPIRED";
-
 export type BusinessAccessState = {
   status: BusinessAccessStatus;
   canAccess: boolean;
   reason: string;
   requiresPaymentAttention: boolean;
+  isManuallyBlocked: boolean;
+  accessOverrideUntil: string | null;
+  subscriptionStatus: string | null;
+  gracePeriodEndsAt: string | null;
 };
 
 type ResolveBusinessAccessInput = {
@@ -41,8 +45,25 @@ export function resolveBusinessAccess({
   now = new Date(),
   subscription,
 }: ResolveBusinessAccessInput): BusinessAccessState {
+  // Tolerância contada do vencimento; sem data não há liberação indefinida.
+  const grace =
+    subscription?.status === SubscriptionStatus.PAST_DUE && subscription.currentPeriodEnd
+      ? new Date(
+          new Date(subscription.currentPeriodEnd).getTime() +
+            env.PAYMENT_GRACE_PERIOD_DAYS * 86400000,
+        )
+      : null;
+  const base = {
+    isManuallyBlocked,
+    accessOverrideUntil: accessOverrideUntil
+      ? new Date(accessOverrideUntil).toISOString()
+      : null,
+    subscriptionStatus: subscription?.status ?? null,
+    gracePeriodEndsAt: grace?.toISOString() ?? null,
+  };
   if (isManuallyBlocked) {
     return {
+      ...base,
       status: "MANUALLY_BLOCKED",
       canAccess: false,
       reason: "Acesso bloqueado manualmente.",
@@ -52,6 +73,7 @@ export function resolveBusinessAccess({
 
   if (isFuture(accessOverrideUntil, now)) {
     return {
+      ...base,
       status: "OVERRIDE_ACTIVE",
       canAccess: true,
       reason: "Acesso liberado por cortesia manual.",
@@ -61,6 +83,7 @@ export function resolveBusinessAccess({
 
   if (!subscription) {
     return {
+      ...base,
       status: "EXPIRED",
       canAccess: false,
       reason: "Assinatura nao encontrada.",
@@ -69,13 +92,18 @@ export function resolveBusinessAccess({
   }
 
   if (
-    subscription.status === SubscriptionStatus.ACTIVE &&
-    (!subscription.currentPeriodEnd || isFuture(subscription.currentPeriodEnd, now))
+    [
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.CANCELED,
+      SubscriptionStatus.EXPIRED,
+    ].some((status) => status === subscription.status) &&
+    isFuture(subscription.currentPeriodEnd, now)
   ) {
     return {
+      ...base,
       status: "ACTIVE",
       canAccess: true,
-      reason: "Assinatura ativa.",
+      reason: "Acesso permitido até o fim do período pago.",
       requiresPaymentAttention: false,
     };
   }
@@ -85,6 +113,7 @@ export function resolveBusinessAccess({
     isFuture(subscription.trialEndsAt, now)
   ) {
     return {
+      ...base,
       status: "TRIAL",
       canAccess: true,
       reason: "Periodo de teste ativo.",
@@ -92,8 +121,13 @@ export function resolveBusinessAccess({
     };
   }
 
-  if (subscription.status === SubscriptionStatus.PAST_DUE) {
+  if (
+    subscription.status === SubscriptionStatus.PAST_DUE &&
+    grace &&
+    isFuture(grace, now)
+  ) {
     return {
+      ...base,
       status: "PAYMENT_ATTENTION",
       canAccess: true,
       reason: "Pagamento requer atencao.",
@@ -102,6 +136,7 @@ export function resolveBusinessAccess({
   }
 
   return {
+    ...base,
     status: "EXPIRED",
     canAccess: false,
     reason: "Assinatura expirada ou cancelada.",

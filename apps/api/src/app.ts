@@ -1,6 +1,8 @@
+import { billingWebhookRoutes } from "./routes/billing-webhook";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 
+import { billingRoutes } from "./routes/billing";
 import { env } from "./env";
 import { appointmentsRoutes } from "./routes/appointments";
 import { adminRoutes } from "./routes/admin";
@@ -26,6 +28,8 @@ export function buildApp() {
     credentials: true,
   });
 
+  app.register(billingRoutes);
+  app.register(billingWebhookRoutes);
   app.register(healthRoutes);
   app.register(adminRoutes);
   app.register(authRoutes);

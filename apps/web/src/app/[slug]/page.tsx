@@ -132,7 +132,8 @@ export default function PublicBusinessPage() {
       });
   }, [selectedDate, selectedServiceId, slug]);
 
-  const selectedService = services.find((service) => service.id === selectedServiceId) ?? null;
+  const selectedService =
+    services.find((service) => service.id === selectedServiceId) ?? null;
   const primaryColor = business?.primaryColor || "#111827";
   const today = useMemo(() => getTodayInputValue(), []);
 
@@ -179,7 +180,11 @@ export default function PublicBusinessPage() {
         setStep("datetime");
         setSelectedTime(null);
         try {
-          const refreshedTimes = await getAvailableTimes(slug, selectedService.id, selectedDate);
+          const refreshedTimes = await getAvailableTimes(
+            slug,
+            selectedService.id,
+            selectedDate,
+          );
           setAvailableTimes(refreshedTimes.availableTimes);
         } catch {
           setAvailableTimes([]);
@@ -213,7 +218,9 @@ export default function PublicBusinessPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
         <section className="w-full max-w-md rounded-md border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-semibold text-slate-950">Profissional nao encontrado</h1>
+          <h1 className="text-2xl font-semibold text-slate-950">
+            Profissional nao encontrado
+          </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
             Confira se o link esta correto ou solicite um novo endereco ao profissional.
           </p>
@@ -235,6 +242,17 @@ export default function PublicBusinessPage() {
   if (!business) {
     return null;
   }
+
+  if (!business.bookingAvailable)
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <BusinessHeader business={business} primaryColor={primaryColor} />
+        <p role="status" className="mx-auto max-w-5xl p-8">
+          {business.accessMessage ??
+            "Os agendamentos deste profissional estão temporariamente indisponíveis."}
+        </p>
+      </main>
+    );
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -331,7 +349,11 @@ function BusinessHeader({
             style={{ backgroundColor: primaryColor }}
           >
             {business.logoUrl ? (
-              <img alt={business.name} className="size-full object-cover" src={business.logoUrl} />
+              <img
+                alt={business.name}
+                className="size-full object-cover"
+                src={business.logoUrl}
+              />
             ) : (
               business.name.charAt(0).toUpperCase()
             )}
@@ -408,7 +430,9 @@ function ServiceStep({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-950">{service.name}</h3>
+                    <h3 className="text-lg font-semibold text-slate-950">
+                      {service.name}
+                    </h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {service.description || "Sem descricao."}
                     </p>
@@ -486,7 +510,9 @@ function DateTimeStep({
 
       <div className="mt-5">
         <p className="text-sm font-medium text-slate-800">Horarios disponiveis</p>
-        {loadingTimes && <p className="mt-3 text-sm text-slate-600">Carregando horarios...</p>}
+        {loadingTimes && (
+          <p className="mt-3 text-sm text-slate-600">Carregando horarios...</p>
+        )}
         {!loadingTimes && selectedDate && availableTimes.length === 0 && (
           <p className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             Nenhum horario disponivel para esta data.
@@ -503,7 +529,11 @@ function DateTimeStep({
                     "h-10 rounded-md border px-4 text-sm font-medium",
                     selected ? "text-white" : "border-slate-200 bg-white text-slate-700",
                   )}
-                  style={selected ? { backgroundColor: primaryColor, borderColor: primaryColor } : undefined}
+                  style={
+                    selected
+                      ? { backgroundColor: primaryColor, borderColor: primaryColor }
+                      : undefined
+                  }
                   type="button"
                   onClick={() => onTimeSelect(time)}
                 >
@@ -519,7 +549,11 @@ function DateTimeStep({
         <Button type="button" variant="outline" onClick={onBack}>
           Voltar
         </Button>
-        <Button type="button" disabled={!selectedDate || !selectedTime} onClick={onContinue}>
+        <Button
+          type="button"
+          disabled={!selectedDate || !selectedTime}
+          onClick={onContinue}
+        >
           Continuar
         </Button>
       </div>
@@ -541,7 +575,9 @@ function CustomerStep({
   return (
     <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="text-xl font-semibold text-slate-950">Seus dados</h2>
-      <p className="mt-2 text-sm text-slate-600">Informe seus dados para confirmar o horario.</p>
+      <p className="mt-2 text-sm text-slate-600">
+        Informe seus dados para confirmar o horario.
+      </p>
 
       <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
         <label>
@@ -553,7 +589,11 @@ function CustomerStep({
         </label>
         <label>
           <span className="text-sm font-medium text-slate-800">WhatsApp</span>
-          <input className="field-input mt-2" inputMode="tel" {...register("customerWhatsapp")} />
+          <input
+            className="field-input mt-2"
+            inputMode="tel"
+            {...register("customerWhatsapp")}
+          />
           {errors.customerWhatsapp && (
             <p className="mt-1 text-sm text-red-600">{errors.customerWhatsapp.message}</p>
           )}
@@ -643,7 +683,9 @@ function SuccessStep({
   return (
     <section className="rounded-md border border-emerald-200 bg-white p-6 text-center shadow-sm">
       <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
-      <h2 className="mt-4 text-2xl font-semibold text-slate-950">Agendamento confirmado!</h2>
+      <h2 className="mt-4 text-2xl font-semibold text-slate-950">
+        Agendamento confirmado!
+      </h2>
       <div className="mx-auto mt-5 max-w-md space-y-2 rounded-md bg-slate-50 p-4 text-left text-sm text-slate-700">
         <p>
           <strong>Servico:</strong> {response.appointment.serviceName}
@@ -652,7 +694,8 @@ function SuccessStep({
           <strong>Data:</strong> {formatDateBR(`${response.appointment.date}T00:00:00`)}
         </p>
         <p>
-          <strong>Horario:</strong> {response.appointment.startTime} - {response.appointment.endTime}
+          <strong>Horario:</strong> {response.appointment.startTime} -{" "}
+          {response.appointment.endTime}
         </p>
         <p>
           <strong>Cliente:</strong> {response.appointment.customer.name}

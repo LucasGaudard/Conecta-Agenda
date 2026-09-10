@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 export const appNavItems = [
+  { title: "Assinatura", href: "/settings/billing", icon: DollarSign },
   {
     title: "Dashboard",
     href: "/dashboard",

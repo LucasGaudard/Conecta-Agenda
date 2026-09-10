@@ -8,6 +8,7 @@ const rawEnv = {
 const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    PAYMENT_GRACE_PERIOD_DAYS: z.coerce.number().int().min(0).max(365).default(3),
     API_PORT: z.coerce.number().int().positive().default(3333),
     HOST: z.string().default("0.0.0.0"),
     DATABASE_URL: z.string().optional(),
@@ -17,10 +18,18 @@ const envSchema = z
   .superRefine((value, context) => {
     if (value.NODE_ENV !== "production") return;
     if (!value.DATABASE_URL) {
-      context.addIssue({ code: "custom", path: ["DATABASE_URL"], message: "DATABASE_URL e obrigatoria em producao." });
+      context.addIssue({
+        code: "custom",
+        path: ["DATABASE_URL"],
+        message: "DATABASE_URL e obrigatoria em producao.",
+      });
     }
     if (value.JWT_SECRET === "change-me" || value.JWT_SECRET.length < 32) {
-      context.addIssue({ code: "custom", path: ["JWT_SECRET"], message: "JWT_SECRET deve ser segura em producao." });
+      context.addIssue({
+        code: "custom",
+        path: ["JWT_SECRET"],
+        message: "JWT_SECRET deve ser segura em producao.",
+      });
     }
   });
 

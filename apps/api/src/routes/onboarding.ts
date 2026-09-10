@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 
+import { requireBusinessAccess } from "../middlewares/business-access";
 import { authenticate } from "../middlewares/auth";
 import { prisma } from "../lib/prisma";
 import { completeOnboardingSchema } from "../schemas/business";
@@ -81,16 +82,14 @@ export async function onboardingRoutes(app: FastifyInstance) {
 
   app.post(
     "/onboarding/complete",
-    { preHandler: authenticate },
+    { preHandler: [authenticate, requireBusinessAccess] },
     async (request, reply) => {
       const parsed = completeOnboardingSchema.safeParse(request.body);
 
       if (!parsed.success) {
-        return reply
-          .status(400)
-          .send({
-            message: parsed.error.issues[0]?.message ?? "Dados de onboarding invalidos.",
-          });
+        return reply.status(400).send({
+          message: parsed.error.issues[0]?.message ?? "Dados de onboarding invalidos.",
+        });
       }
 
       const isSlugAvailable = await ensureSlugIsAvailable(

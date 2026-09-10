@@ -27,6 +27,7 @@ export const adminBusinessesQuerySchema = z.object({
   search: z.string().trim().optional(),
   accessStatus: z
     .enum([
+      "ACCESS_ALLOWED",
       "ACTIVE",
       "TRIAL",
       "OVERRIDE_ACTIVE",
@@ -57,10 +58,18 @@ export const updateBusinessAccessSchema = z
   });
 
 export const createAdminBusinessSchema = z.object({
-  ownerName: z.string().trim().min(2, "Nome do proprietario deve ter pelo menos 2 caracteres."),
+  ownerName: z
+    .string()
+    .trim()
+    .min(2, "Nome do proprietario deve ter pelo menos 2 caracteres."),
   ownerEmail: z.string().trim().email("E-mail invalido.").toLowerCase(),
-  temporaryPassword: z.string().min(6, "Senha temporaria deve ter pelo menos 6 caracteres."),
-  businessName: z.string().trim().min(2, "Nome do negocio deve ter pelo menos 2 caracteres."),
+  temporaryPassword: z
+    .string()
+    .min(6, "Senha temporaria deve ter pelo menos 6 caracteres."),
+  businessName: z
+    .string()
+    .trim()
+    .min(2, "Nome do negocio deve ter pelo menos 2 caracteres."),
   whatsapp: optionalNullableTextSchema,
   city: optionalNullableTextSchema,
   planSlug: z.string().trim().min(1).default("starter"),

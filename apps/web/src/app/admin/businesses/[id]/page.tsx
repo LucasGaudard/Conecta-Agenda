@@ -75,7 +75,9 @@ export default function AdminBusinessDetailsPage() {
       await loadBusiness();
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : "Nao foi possivel bloquear.",
+        requestError instanceof Error
+          ? requestError.message
+          : "Nao foi possivel bloquear.",
       );
     } finally {
       setSaving(false);
@@ -100,7 +102,9 @@ export default function AdminBusinessDetailsPage() {
       await loadBusiness();
     } catch (requestError) {
       setError(
-        requestError instanceof Error ? requestError.message : "Nao foi possivel desbloquear.",
+        requestError instanceof Error
+          ? requestError.message
+          : "Nao foi possivel desbloquear.",
       );
     } finally {
       setSaving(false);
@@ -159,7 +163,9 @@ export default function AdminBusinessDetailsPage() {
             <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                 <div>
-                  <h2 className="text-2xl font-semibold text-slate-950">{business.name}</h2>
+                  <h2 className="text-2xl font-semibold text-slate-950">
+                    {business.name}
+                  </h2>
                   <p className="mt-2 text-sm text-slate-600">
                     {business.owner.name} - {business.owner.email}
                   </p>
@@ -201,16 +207,41 @@ export default function AdminBusinessDetailsPage() {
               <Info title="Contagens">
                 <Detail label="Servicos" value={String(business.counts.services)} />
                 <Detail label="Clientes" value={String(business.counts.customers)} />
-                <Detail label="Agendamentos" value={String(business.counts.appointments)} />
+                <Detail
+                  label="Agendamentos"
+                  value={String(business.counts.appointments)}
+                />
                 <Detail label="Acesso" value={business.access.reason} />
+                <Detail
+                  label="Pode acessar"
+                  value={business.access.canAccess ? "Sim" : "Não"}
+                />
+                <Detail
+                  label="Atenção financeira"
+                  value={business.access.requiresPaymentAttention ? "Sim" : "Não"}
+                />
+                <Detail
+                  label="Fim da tolerância"
+                  value={
+                    business.access.gracePeriodEndsAt
+                      ? new Date(business.access.gracePeriodEndsAt).toLocaleString(
+                          "pt-BR",
+                        )
+                      : "-"
+                  }
+                />
               </Info>
             </section>
 
             <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-950">Controle manual de acesso</h3>
+              <h3 className="text-lg font-semibold text-slate-950">
+                Controle manual de acesso
+              </h3>
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
                 <label>
-                  <span className="text-sm font-medium text-slate-800">Motivo do bloqueio</span>
+                  <span className="text-sm font-medium text-slate-800">
+                    Motivo do bloqueio
+                  </span>
                   <textarea
                     className="field-input mt-2 min-h-24 py-2"
                     value={blockReason}
@@ -232,7 +263,12 @@ export default function AdminBusinessDetailsPage() {
                 <Button type="button" disabled={saving} onClick={handleBlock}>
                   Bloquear
                 </Button>
-                <Button type="button" variant="outline" disabled={saving} onClick={handleUnblock}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={handleUnblock}
+                >
                   Desbloquear
                 </Button>
                 <Button

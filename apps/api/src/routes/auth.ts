@@ -7,7 +7,10 @@ import { prisma } from "../lib/prisma";
 import { comparePassword, hashPassword } from "../utils/password";
 import { signAuthToken } from "../utils/jwt";
 import { generateUniqueBusinessSlug } from "../utils/slug";
-import { resolveBusinessAccess, type BusinessAccessState } from "../domain/business-access";
+import {
+  resolveBusinessAccess,
+  type BusinessAccessState,
+} from "../domain/business-access";
 
 type AuthResponse = {
   user: {
@@ -229,18 +232,17 @@ export async function authRoutes(app: FastifyInstance) {
       },
     });
 
-    if (!user || (user.role === UserRole.PROFESSIONAL && !user.business)) {
+    if (!user) {
       return reply.status(401).send({ message: "Token ausente ou invalido." });
     }
 
-    const access =
-      user.business
-        ? resolveBusinessAccess({
-            isManuallyBlocked: user.business.isManuallyBlocked,
-            accessOverrideUntil: user.business.accessOverrideUntil,
-            subscription: user.subscription,
-          })
-        : null;
+    const access = user.business
+      ? resolveBusinessAccess({
+          isManuallyBlocked: user.business.isManuallyBlocked,
+          accessOverrideUntil: user.business.accessOverrideUntil,
+          subscription: user.subscription,
+        })
+      : null;
 
     const response: AuthMeResponse = {
       user: {

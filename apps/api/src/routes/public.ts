@@ -1,6 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import { AppointmentStatus } from "@prisma/client";
 
+import { businessAccessSelect } from "../middlewares/business-access";
+import { resolveBusinessAccess } from "../domain/business-access";
+
+const unavailable = {
+  code: "PUBLIC_BOOKING_UNAVAILABLE",
+  message: "Os agendamentos deste profissional estão temporariamente indisponíveis.",
+};
+
 import { prisma } from "../lib/prisma";
 import {
   availableTimesQuerySchema,
@@ -75,6 +83,7 @@ export async function publicRoutes(app: FastifyInstance) {
     const business = await prisma.business.findUnique({
       where: { slug },
       select: {
+        ...businessAccessSelect,
         id: true,
         name: true,
         slug: true,
@@ -99,7 +108,17 @@ export async function publicRoutes(app: FastifyInstance) {
       return reply.status(404).send({ message: "Profissional nao encontrado." });
     }
 
-    return reply.send({ business: mapPublicBusiness(business) });
+    const access = resolveBusinessAccess({
+      ...business,
+      subscription: business.user.subscription,
+    });
+    return reply.send({
+      business: {
+        ...mapPublicBusiness(business),
+        bookingAvailable: access.canAccess,
+        ...(!access.canAccess ? { accessMessage: unavailable.message } : {}),
+      },
+    });
   });
 
   app.get("/public/:slug/services", async (request, reply) => {
@@ -153,16 +172,25 @@ export async function publicRoutes(app: FastifyInstance) {
     if (!parsedQuery.success) {
       return reply
         .status(400)
-        .send({ message: parsedQuery.error.issues[0]?.message ?? "Parametros invalidos." });
+        .send({
+          message: parsedQuery.error.issues[0]?.message ?? "Parametros invalidos.",
+        });
     }
 
     const business = await prisma.business.findUnique({
       where: { slug: parsedParams.data.slug },
-      select: { id: true },
+      select: { id: true, ...businessAccessSelect },
     });
 
     if (!business) {
       return reply.status(404).send({ message: "Profissional nao encontrado." });
+    }
+
+    if (
+      !resolveBusinessAccess({ ...business, subscription: business.user.subscription })
+        .canAccess
+    ) {
+      return reply.status(403).send(unavailable);
     }
 
     const result = await calculateAvailableTimes({
@@ -199,6 +227,7 @@ export async function publicRoutes(app: FastifyInstance) {
     const business = await prisma.business.findUnique({
       where: { slug: parsedParams.data.slug },
       select: {
+        ...businessAccessSelect,
         id: true,
         name: true,
         whatsapp: true,
@@ -207,6 +236,13 @@ export async function publicRoutes(app: FastifyInstance) {
 
     if (!business) {
       return reply.status(404).send({ message: "Profissional nao encontrado." });
+    }
+
+    if (
+      !resolveBusinessAccess({ ...business, subscription: business.user.subscription })
+        .canAccess
+    ) {
+      return reply.status(403).send(unavailable);
     }
 
     const result = await calculateAvailableTimes({
@@ -222,7 +258,9 @@ export async function publicRoutes(app: FastifyInstance) {
     const service = result.service;
 
     if (!result.availableTimes.includes(parsedBody.data.startTime)) {
-      return reply.status(409).send({ message: "Este horario nao esta mais disponivel." });
+      return reply
+        .status(409)
+        .send({ message: "Este horario nao esta mais disponivel." });
     }
 
     const endTime = addMinutesToTime(parsedBody.data.startTime, service.durationMinutes);

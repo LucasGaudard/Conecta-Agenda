@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { Prisma } from "@prisma/client";
 
+import { requireBusinessAccess } from "../middlewares/business-access";
 import { authenticate } from "../middlewares/auth";
 import { prisma } from "../lib/prisma";
 import { updateBusinessProfileSchema } from "../schemas/business";
@@ -166,43 +167,47 @@ export async function businessRoutes(app: FastifyInstance) {
     return reply.send(profile);
   });
 
-  app.put("/business/me", { preHandler: authenticate }, async (request, reply) => {
-    const parsed = updateBusinessProfileSchema.safeParse(request.body);
+  app.put(
+    "/business/me",
+    { preHandler: [authenticate, requireBusinessAccess] },
+    async (request, reply) => {
+      const parsed = updateBusinessProfileSchema.safeParse(request.body);
 
-    if (!parsed.success) {
-      return reply
-        .status(400)
-        .send({
+      if (!parsed.success) {
+        return reply.status(400).send({
           message: parsed.error.issues[0]?.message ?? "Dados do negocio invalidos.",
         });
-    }
+      }
 
-    const isSlugAvailable = await ensureSlugIsAvailable(
-      parsed.data.slug,
-      request.user.businessId,
-    );
+      const isSlugAvailable = await ensureSlugIsAvailable(
+        parsed.data.slug,
+        request.user.businessId,
+      );
 
-    if (!isSlugAvailable) {
-      return reply.status(409).send({ message: "Este slug ja esta em uso." });
-    }
-
-    try {
-      await updateBusinessAndSettings(request.user.businessId, parsed.data);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+      if (!isSlugAvailable) {
         return reply.status(409).send({ message: "Este slug ja esta em uso." });
       }
 
-      request.log.error(error);
-      return reply.status(500).send({ message: "Nao foi possivel atualizar o negocio." });
-    }
+      try {
+        await updateBusinessAndSettings(request.user.businessId, parsed.data);
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          return reply.status(409).send({ message: "Este slug ja esta em uso." });
+        }
 
-    const profile = await getBusinessProfile(request.user.businessId);
-    return reply.send(profile);
-  });
+        request.log.error(error);
+        return reply
+          .status(500)
+          .send({ message: "Nao foi possivel atualizar o negocio." });
+      }
+
+      const profile = await getBusinessProfile(request.user.businessId);
+      return reply.send(profile);
+    },
+  );
 }
 
 export { ensureSlugIsAvailable, updateBusinessAndSettings };

@@ -6,6 +6,7 @@ type ApiFetchOptions = RequestInit & {
 
 type ApiErrorResponse = {
   message?: string;
+  code?: string;
 };
 
 function getErrorMessage(data: unknown) {
@@ -25,6 +26,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -63,7 +65,20 @@ export async function apiFetch<TResponse>(
     : null;
 
   if (!response.ok) {
-    throw new ApiError(getErrorMessage(data), response.status);
+    const code =
+      data && typeof data === "object" && "code" in data && typeof data.code === "string"
+        ? data.code
+        : undefined;
+    if (
+      token &&
+      (response.status === 402 || response.status === 403) &&
+      code === "BUSINESS_ACCESS_BLOCKED" &&
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/billing-required"
+    ) {
+      window.location.replace("/billing-required");
+    }
+    throw new ApiError(getErrorMessage(data), response.status, code);
   }
 
   return data as TResponse;

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { DayOfWeek } from "@prisma/client";
 
+import { requireBusinessAccess } from "../middlewares/business-access";
 import { authenticate } from "../middlewares/auth";
 import { prisma } from "../lib/prisma";
 import { updateWorkingHoursSchema } from "../schemas/working-hours";
@@ -102,50 +103,58 @@ async function listWorkingHours(businessId: string) {
 }
 
 export async function workingHoursRoutes(app: FastifyInstance) {
-  app.get("/working-hours", { preHandler: authenticate }, async (request, reply) => {
-    const workingHours = await listWorkingHours(request.user.businessId);
-    return reply.send({ workingHours });
-  });
+  app.get(
+    "/working-hours",
+    { preHandler: [authenticate, requireBusinessAccess] },
+    async (request, reply) => {
+      const workingHours = await listWorkingHours(request.user.businessId);
+      return reply.send({ workingHours });
+    },
+  );
 
-  app.put("/working-hours", { preHandler: authenticate }, async (request, reply) => {
-    const parsed = updateWorkingHoursSchema.safeParse(request.body);
+  app.put(
+    "/working-hours",
+    { preHandler: [authenticate, requireBusinessAccess] },
+    async (request, reply) => {
+      const parsed = updateWorkingHoursSchema.safeParse(request.body);
 
-    if (!parsed.success) {
-      return reply
-        .status(400)
-        .send({ message: parsed.error.issues[0]?.message ?? "Horarios invalidos." });
-    }
+      if (!parsed.success) {
+        return reply
+          .status(400)
+          .send({ message: parsed.error.issues[0]?.message ?? "Horarios invalidos." });
+      }
 
-    await prisma.$transaction(
-      parsed.data.workingHours.map((hour) =>
-        prisma.workingHour.upsert({
-          where: {
-            businessId_dayOfWeek: {
+      await prisma.$transaction(
+        parsed.data.workingHours.map((hour) =>
+          prisma.workingHour.upsert({
+            where: {
+              businessId_dayOfWeek: {
+                businessId: request.user.businessId,
+                dayOfWeek: hour.dayOfWeek,
+              },
+            },
+            update: {
+              isActive: hour.isActive,
+              startTime: hour.startTime,
+              endTime: hour.endTime,
+              breakStart: hour.breakStart || null,
+              breakEnd: hour.breakEnd || null,
+            },
+            create: {
               businessId: request.user.businessId,
               dayOfWeek: hour.dayOfWeek,
+              isActive: hour.isActive,
+              startTime: hour.startTime,
+              endTime: hour.endTime,
+              breakStart: hour.breakStart || null,
+              breakEnd: hour.breakEnd || null,
             },
-          },
-          update: {
-            isActive: hour.isActive,
-            startTime: hour.startTime,
-            endTime: hour.endTime,
-            breakStart: hour.breakStart || null,
-            breakEnd: hour.breakEnd || null,
-          },
-          create: {
-            businessId: request.user.businessId,
-            dayOfWeek: hour.dayOfWeek,
-            isActive: hour.isActive,
-            startTime: hour.startTime,
-            endTime: hour.endTime,
-            breakStart: hour.breakStart || null,
-            breakEnd: hour.breakEnd || null,
-          },
-        }),
-      ),
-    );
+          }),
+        ),
+      );
 
-    const workingHours = await listWorkingHours(request.user.businessId);
-    return reply.send({ workingHours });
-  });
+      const workingHours = await listWorkingHours(request.user.businessId);
+      return reply.send({ workingHours });
+    },
+  );
 }

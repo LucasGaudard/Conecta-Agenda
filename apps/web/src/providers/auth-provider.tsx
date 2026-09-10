@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuthBusiness, AuthUser } from "@conecta-agenda/types";
+import type { BusinessAccessState, AuthBusiness, AuthUser } from "@conecta-agenda/types";
 import type { AuthResponse } from "@conecta-agenda/types";
 import {
   createContext,
@@ -24,6 +24,7 @@ import {
 } from "@/lib/auth";
 
 type AuthContextValue = {
+  access: BusinessAccessState | null;
   user: AuthUser | null;
   business: AuthBusiness | null;
   token: string | null;
@@ -38,6 +39,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [access, setAccess] = useState<BusinessAccessState | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [business, setBusiness] = useState<AuthBusiness | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -58,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setUser(null);
     setBusiness(null);
+    setAccess(null);
   }, []);
 
   useEffect(() => {
@@ -74,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((response) => {
         setUser(response.user);
         setBusiness(response.business);
+        setAccess(response.access);
       })
       .catch(() => {
         logout();
@@ -86,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (payload: LoginPayload) => {
       const response = await loginRequest(payload);
-      setSession(response.token, response.user, response.business);
+      const session = await meRequest(response.token);
+      setAccess(session.access);
+      setSession(response.token, session.user, session.business);
       return response;
     },
     [setSession],
@@ -95,7 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (payload: RegisterPayload) => {
       const response = await registerRequest(payload);
-      setSession(response.token, response.user, response.business);
+      const session = await meRequest(response.token);
+      setAccess(session.access);
+      setSession(response.token, session.user, session.business);
       return response;
     },
     [setSession],
@@ -112,10 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(activeToken);
     setUser(response.user);
     setBusiness(response.business);
+    setAccess(response.access);
   }, [token]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      access,
       user,
       business,
       token,
@@ -126,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshMe,
       logout,
     }),
-    [business, loading, login, logout, refreshMe, register, token, user],
+    [access, business, loading, login, logout, refreshMe, register, token, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

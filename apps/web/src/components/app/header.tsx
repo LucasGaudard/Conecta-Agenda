@@ -12,6 +12,7 @@ type HeaderProps = {
   pathname: string;
   userName: string;
   onLogout: () => void;
+  accessBlocked?: boolean;
 };
 
 export function Header({
@@ -20,12 +21,13 @@ export function Header({
   pathname,
   userName,
   onLogout,
+  accessBlocked = false,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:px-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <MobileNav pathname={pathname} />
+          {!accessBlocked && <MobileNav pathname={pathname} />}
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold text-slate-950">{pageTitle}</h1>
             <p className="truncate text-xs text-slate-500">{businessName}</p>
@@ -35,7 +37,7 @@ export function Header({
         <div className="flex items-center gap-3">
           <div className="hidden text-right sm:block">
             <p className="text-sm font-medium text-slate-950">{userName}</p>
-            <p className="text-xs text-slate-500">Conta ativa</p>
+            <p className="text-xs text-slate-500">{accessBlocked ? "Acesso bloqueado" : "Minha conta"}</p>
           </div>
           <Button
             aria-label="Sair"
