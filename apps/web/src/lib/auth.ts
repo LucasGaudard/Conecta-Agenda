@@ -1,4 +1,9 @@
-import type { AuthMeResponse, AuthResponse } from "@conecta-agenda/types";
+import type {
+  AuthMeResponse,
+  AuthResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+} from "@conecta-agenda/types";
 
 import { apiFetch } from "./api";
 
@@ -50,5 +55,19 @@ export function registerRequest(payload: RegisterPayload) {
 export function meRequest(token: string) {
   return apiFetch<AuthMeResponse>("/auth/me", {
     token,
+  });
+}
+
+export function forgotPasswordRequest(payload: ForgotPasswordRequest) {
+  return apiFetch<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetPasswordRequest(payload: ResetPasswordRequest) {
+  return apiFetch<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }

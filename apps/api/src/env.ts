@@ -9,6 +9,7 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     PAYMENT_GRACE_PERIOD_DAYS: z.coerce.number().int().min(0).max(365).default(3),
+    PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().min(1).max(120).default(30),
     API_PORT: z.coerce.number().int().positive().default(3333),
     HOST: z.string().default("0.0.0.0"),
     DATABASE_URL: z.string().optional(),

@@ -68,6 +68,9 @@ export default function LoginPage() {
           Acesse sua conta para gerenciar sua agenda.
         </p>
 
+        <Link className="mt-4 block text-sm underline" href="/forgot-password">
+          Esqueci minha senha
+        </Link>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label className="text-sm font-medium text-slate-800" htmlFor="email">

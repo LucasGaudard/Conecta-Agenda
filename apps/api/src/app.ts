@@ -1,4 +1,5 @@
 import { billingWebhookRoutes } from "./routes/billing-webhook";
+import { passwordResetRoutes } from "./routes/password-reset";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 
@@ -29,6 +30,7 @@ export function buildApp() {
   });
 
   app.register(billingRoutes);
+  app.register(passwordResetRoutes);
   app.register(billingWebhookRoutes);
   app.register(healthRoutes);
   app.register(adminRoutes);
