@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import { loadLocalEnv } from "./load-env";
+
+loadLocalEnv();
+
 const rawEnv = {
   ...process.env,
   API_PORT: process.env.API_PORT ?? process.env.PORT,
@@ -25,7 +29,7 @@ const envSchema = z
         message: "DATABASE_URL e obrigatoria em producao.",
       });
     }
-    if (value.JWT_SECRET === "change-me" || value.JWT_SECRET.length < 32) {
+    if (value.JWT_SECRET.startsWith("change-me") || value.JWT_SECRET.length < 32) {
       context.addIssue({
         code: "custom",
         path: ["JWT_SECRET"],
@@ -34,4 +38,10 @@ const envSchema = z
     }
   });
 
-export const env = envSchema.parse(rawEnv);
+const result = envSchema.safeParse(rawEnv);
+if (!result.success) {
+  throw new Error(
+    `Configuração de ambiente inválida: ${[...new Set(result.error.issues.map((issue) => issue.path.join(".")))].join(", ")}`,
+  );
+}
+export const env = result.data;

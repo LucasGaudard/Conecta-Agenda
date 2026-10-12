@@ -8,14 +8,16 @@
     "dev:api": "pnpm --filter @conecta-agenda/api dev",
     "dev:web": "pnpm --filter @conecta-agenda/web dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint",
+    "lint": "pnpm -r lint && eslint prisma",
     "format": "prettier . --write",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "db:admin:create": "tsx prisma/create-admin.ts",
+    "test": "tsx --test apps/api/src/domain/business-access.test.ts apps/api/src/routes/business-access.test.ts apps/api/src/billing/billing.test.ts apps/api/src/password-reset/password-reset.test.ts apps/api/src/load-env.test.ts prisma/provisioning.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -36,5 +38,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0"
+  },
+  "engines": {
+    "node": ">=22.16.0"
   }
 }

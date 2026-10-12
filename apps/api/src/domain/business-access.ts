@@ -31,7 +31,8 @@ type ResolveBusinessAccessInput = {
 };
 
 function toDate(value: Date | string | null) {
-  return value ? new Date(value) : null;
+  const date = value ? new Date(value) : null;
+  return date && Number.isFinite(date.getTime()) ? date : null;
 }
 
 function isFuture(value: Date | string | null, now: Date) {
@@ -45,19 +46,15 @@ export function resolveBusinessAccess({
   now = new Date(),
   subscription,
 }: ResolveBusinessAccessInput): BusinessAccessState {
+  const periodEnd = toDate(subscription?.currentPeriodEnd ?? null);
   // Tolerância contada do vencimento; sem data não há liberação indefinida.
   const grace =
-    subscription?.status === SubscriptionStatus.PAST_DUE && subscription.currentPeriodEnd
-      ? new Date(
-          new Date(subscription.currentPeriodEnd).getTime() +
-            env.PAYMENT_GRACE_PERIOD_DAYS * 86400000,
-        )
+    subscription?.status === SubscriptionStatus.PAST_DUE && periodEnd
+      ? new Date(periodEnd.getTime() + env.PAYMENT_GRACE_PERIOD_DAYS * 86400000)
       : null;
   const base = {
     isManuallyBlocked,
-    accessOverrideUntil: accessOverrideUntil
-      ? new Date(accessOverrideUntil).toISOString()
-      : null,
+    accessOverrideUntil: toDate(accessOverrideUntil)?.toISOString() ?? null,
     subscriptionStatus: subscription?.status ?? null,
     gracePeriodEndsAt: grace?.toISOString() ?? null,
   };
@@ -139,7 +136,12 @@ export function resolveBusinessAccess({
     ...base,
     status: "EXPIRED",
     canAccess: false,
-    reason: "Assinatura expirada ou cancelada.",
+    // Legacy dates must be reviewed before release; bounded courtesy is supported above.
+    reason:
+      subscription.status === SubscriptionStatus.ACTIVE &&
+      !toDate(subscription.currentPeriodEnd)
+        ? "Período da assinatura requer revisão administrativa."
+        : "Assinatura expirada ou cancelada.",
     requiresPaymentAttention: true,
   };
 }

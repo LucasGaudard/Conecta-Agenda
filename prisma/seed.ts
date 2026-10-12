@@ -1,7 +1,12 @@
 import bcrypt from "bcrypt";
 import { DayOfWeek, PrismaClient, SubscriptionStatus, UserRole } from "@prisma/client";
 
-const prisma = new PrismaClient();
+import { loadLocalEnv } from "../apps/api/src/load-env";
+import { assertDemoSeedAllowed } from "./seed-policy";
+
+loadLocalEnv();
+assertDemoSeedAllowed(process.env);
+const prisma = new PrismaClient({ log: [] });
 
 type SeedWorkingHour = {
   dayOfWeek: DayOfWeek;
@@ -122,11 +127,13 @@ async function main() {
     update: {
       planId: starterPlan.id,
       status: SubscriptionStatus.ACTIVE,
+      currentPeriodEnd: new Date(Date.now() + 30 * 86400000),
     },
     create: {
       userId: user.id,
       planId: starterPlan.id,
       status: SubscriptionStatus.ACTIVE,
+      currentPeriodEnd: new Date(Date.now() + 30 * 86400000),
     },
   });
 
@@ -217,43 +224,16 @@ async function main() {
       },
     });
   }
-
-  await seedSuperAdmin();
-}
-
-async function seedSuperAdmin() {
-  const name = process.env.SUPER_ADMIN_NAME?.trim();
-  const email = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase();
-  const password = process.env.SUPER_ADMIN_PASSWORD;
-
-  if (!name || !email || !password) {
-    return;
-  }
-
-  const superAdminPasswordHash = await bcrypt.hash(password, 10);
-
-  await prisma.user.upsert({
-    where: { email },
-    update: {
-      name,
-      passwordHash: superAdminPasswordHash,
-      role: UserRole.SUPER_ADMIN,
-    },
-    create: {
-      name,
-      email,
-      passwordHash: superAdminPasswordHash,
-      role: UserRole.SUPER_ADMIN,
-    },
-  });
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
   })
-  .catch(async (error) => {
-    console.error(error);
+  .catch(async () => {
+    console.error(
+      "Seed de demonstração falhou; revise o banco descartável sem divulgar credenciais.",
+    );
     await prisma.$disconnect();
     process.exit(1);
   });

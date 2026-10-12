@@ -5,6 +5,55 @@ import { resolveBusinessAccess } from "./business-access";
 import { env } from "../env";
 
 const now = new Date("2026-09-10T12:00:00Z");
+
+test("legacy ACTIVE needs review; bounded courtesy ends and manual block wins", () => {
+  const subscription = {
+    status: SubscriptionStatus.ACTIVE,
+    currentPeriodEnd: null,
+    trialEndsAt: null,
+  };
+  const deadline = new Date(now.getTime() + 86400000);
+  const input = {
+    subscription,
+    isManuallyBlocked: false,
+    accessOverrideUntil: null,
+    now,
+  };
+  assert.match(resolveBusinessAccess(input).reason, /revisão administrativa/);
+  assert.equal(resolveBusinessAccess(input).canAccess, false);
+  assert.equal(
+    resolveBusinessAccess({ ...input, accessOverrideUntil: deadline }).canAccess,
+    true,
+  );
+  assert.equal(
+    resolveBusinessAccess({ ...input, accessOverrideUntil: deadline, now: deadline })
+      .canAccess,
+    false,
+  );
+  assert.equal(
+    resolveBusinessAccess({
+      ...input,
+      accessOverrideUntil: deadline,
+      isManuallyBlocked: true,
+    }).canAccess,
+    false,
+  );
+  assert.equal(subscription.currentPeriodEnd, null);
+});
+
+test("invalid legacy dates fail closed without serialization errors", () => {
+  for (const status of Object.values(SubscriptionStatus)) {
+    const access = resolveBusinessAccess({
+      isManuallyBlocked: false,
+      accessOverrideUntil: "invalid",
+      subscription: { status, currentPeriodEnd: "invalid", trialEndsAt: "invalid" },
+      now,
+    });
+    assert.equal(access.canAccess, false);
+    assert.equal(access.accessOverrideUntil, null);
+    assert.equal(access.gracePeriodEndsAt, null);
+  }
+});
 const future = new Date("2026-09-20T12:00:00Z");
 const past = new Date("2026-09-01T12:00:00Z");
 const cases = [
