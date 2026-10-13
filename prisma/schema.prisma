@@ -8,27 +8,27 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
-  email        String        @unique
+  email        String   @unique
   passwordHash String
-  role         UserRole      @default(PROFESSIONAL)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  role         UserRole @default(PROFESSIONAL)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  business          Business?
-  subscription      Subscription?
-  blockedBusinesses Business[]     @relation("BusinessBlockedBy")
+  business            Business?
+  subscription        Subscription?
+  blockedBusinesses   Business[]           @relation("BusinessBlockedBy")
   passwordResetTokens PasswordResetToken[]
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -94,23 +94,130 @@ model Plan {
   updatedAt    DateTime @updatedAt
 
   subscriptions Subscription[]
+  providerPlans ProviderPlan[]
 }
 
 model Subscription {
-  id                 String             @id @default(cuid())
-  userId             String             @unique
-  planId             String
-  status             SubscriptionStatus
-  trialEndsAt        DateTime?
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                     String              @id @default(cuid())
+  userId                 String              @unique
+  planId                 String
+  status                 SubscriptionStatus
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  provider               BillingProvider?
+  providerEnvironment    BillingEnvironment?
+  providerSubscriptionId String?
+  providerStatus         String?
+  externalReference      String?             @unique
+  nextPaymentAt          DateTime?
+  cancelRequestedAt      DateTime?
+  canceledAt             DateTime?
+  lastProviderSyncAt     DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan Plan @relation(fields: [planId], references: [id])
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             Plan                     @relation(fields: [planId], references: [id])
+  checkoutAttempts BillingCheckoutAttempt[]
+  billingEvents    BillingEvent[]
+  billingPayments  BillingPayment[]
 
+  @@unique([provider, providerEnvironment, providerSubscriptionId], map: "Subscription_provider_providerEnvironment_providerSubscriptionI")
   @@index([planId])
+  @@index([status, currentPeriodEnd])
+}
+
+model ProviderPlan {
+  id             String             @id @default(cuid())
+  planId         String
+  provider       BillingProvider
+  environment    BillingEnvironment
+  providerPlanId String
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@unique([planId, provider, environment])
+  @@unique([provider, environment, providerPlanId])
+  @@index([provider, environment, isActive])
+}
+
+model BillingCheckoutAttempt {
+  id                     String                @id @default(cuid())
+  subscriptionId         String
+  provider               BillingProvider
+  environment            BillingEnvironment
+  idempotencyKey         String                @unique
+  externalReference      String                @unique
+  providerSubscriptionId String?
+  status                 BillingCheckoutStatus @default(CREATED)
+  expiresAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, createdAt])
+  @@index([provider, environment, providerSubscriptionId], map: "BillingCheckoutAttempt_provider_environment_providerSubscriptio")
+  @@index([status, expiresAt])
+}
+
+model BillingEvent {
+  id               String             @id @default(cuid())
+  subscriptionId   String?
+  provider         BillingProvider
+  environment      BillingEnvironment
+  deduplicationKey String             @unique
+  providerEventId  String
+  requestId        String?
+  topic            String
+  action           String?
+  resourceId       String
+  payloadHash      String?
+  status           BillingEventStatus @default(RECEIVED)
+  attempts         Int                @default(0)
+  errorCode        String?
+  receivedAt       DateTime           @default(now())
+  processedAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, environment, topic, providerEventId])
+  @@index([subscriptionId, receivedAt])
+  @@index([status, receivedAt])
+  @@index([provider, environment, resourceId])
+}
+
+model BillingPayment {
+  id                          String               @id @default(cuid())
+  subscriptionId              String
+  provider                    BillingProvider
+  environment                 BillingEnvironment
+  providerPaymentId           String
+  providerAuthorizedPaymentId String?
+  status                      BillingPaymentStatus
+  providerStatus              String
+  statusDetail                String?
+  amountInCents               Int
+  currency                    String               @default("BRL")
+  paidAt                      DateTime?
+  providerCreatedAt           DateTime?
+  providerUpdatedAt           DateTime?
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, environment, providerPaymentId])
+  @@index([subscriptionId, status])
+  @@index([provider, environment, providerAuthorizedPaymentId], map: "BillingPayment_provider_environment_providerAuthorizedPaymentId")
+  @@index([status, providerUpdatedAt])
 }
 
 model Service {
@@ -238,6 +345,41 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
   EXPIRED
+}
+
+enum BillingProvider {
+  MERCADO_PAGO
+}
+
+enum BillingEnvironment {
+  TEST
+  PRODUCTION
+}
+
+enum BillingCheckoutStatus {
+  CREATED
+  PROVIDER_CREATED
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum BillingEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum BillingPaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+  REFUNDED
+  CHARGED_BACK
+  UNKNOWN
 }
 
 enum UserRole {

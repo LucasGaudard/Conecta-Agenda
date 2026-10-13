@@ -17,7 +17,7 @@
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset",
     "db:admin:create": "tsx prisma/create-admin.ts",
-    "test": "tsx --test apps/api/src/domain/business-access.test.ts apps/api/src/routes/business-access.test.ts apps/api/src/billing/billing.test.ts apps/api/src/password-reset/password-reset.test.ts apps/api/src/load-env.test.ts prisma/provisioning.test.ts"
+    "test": "tsx --test apps/api/src/domain/business-access.test.ts apps/api/src/routes/business-access.test.ts apps/api/src/billing/billing.test.ts apps/api/src/billing/policy.test.ts apps/api/src/billing/mercado-pago-http.test.ts apps/api/src/billing/subscription-preparation.test.ts apps/api/src/password-reset/password-reset.test.ts apps/api/src/load-env.test.ts prisma/provisioning.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

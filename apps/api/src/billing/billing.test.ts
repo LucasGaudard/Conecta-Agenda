@@ -14,7 +14,14 @@ test("missing, partial and invalid configuration do not throw", () => {
     false,
   );
   assert.equal(
-    getBillingConfig({ MERCADO_PAGO_SUCCESS_URL: "javascript:alert(1)" }).successUrl,
+    getBillingConfig({ MERCADO_PAGO_BACK_URL: "javascript:alert(1)" }).backUrl,
+    null,
+  );
+  assert.equal(
+    getBillingConfig({
+      MERCADO_PAGO_ENVIRONMENT: "PRODUCTION",
+      MERCADO_PAGO_BACK_URL: "http://example.com/return",
+    }).backUrl,
     null,
   );
 });
@@ -26,10 +33,10 @@ test("all provider operations fail closed, including configured adapter, without
   const config = getBillingConfig({
     MERCADO_PAGO_ACCESS_TOKEN: "test-only",
     MERCADO_PAGO_WEBHOOK_SECRET: "test-only",
-    MERCADO_PAGO_PLAN_ID: "test-plan",
-    MERCADO_PAGO_SUCCESS_URL: "https://example.com/success",
-    MERCADO_PAGO_FAILURE_URL: "https://example.com/failure",
-    MERCADO_PAGO_PENDING_URL: "https://example.com/pending",
+    MERCADO_PAGO_ENVIRONMENT: "TEST",
+    MERCADO_PAGO_APPLICATION_ID: "test-application",
+    MERCADO_PAGO_COLLECTOR_ID: "test-collector",
+    MERCADO_PAGO_BACK_URL: "https://example.com/billing/return",
   });
   assert.equal(config.providerConfigured, true);
   try {
@@ -65,10 +72,10 @@ test("billing routes and webhook never mutate subscription or trust caller field
   const names = [
     "ACCESS_TOKEN",
     "WEBHOOK_SECRET",
-    "PLAN_ID",
-    "SUCCESS_URL",
-    "FAILURE_URL",
-    "PENDING_URL",
+    "ENVIRONMENT",
+    "APPLICATION_ID",
+    "COLLECTOR_ID",
+    "BACK_URL",
   ].map((key) => `MERCADO_PAGO_${key}`);
   const originalEnv = names.map((key) => process.env[key]);
   names.forEach((key) => {

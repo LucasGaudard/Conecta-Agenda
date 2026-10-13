@@ -12,22 +12,24 @@ Next.js carrega nativamente em `apps/web`: processo, `.env.<ambiente>.local`, `.
 
 Prefira `.env` da raiz para API e Prisma local; `apps/api/.env` é override opcional e pode fazer a API apontar a banco diferente da CLI. Não mantenha DATABASE_URL divergente. Nos testes simulados use NODE_ENV=test para isolar arquivos locais.
 
-| Uso                                    | Variáveis                                                                                                                                                  |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API local                              | NODE_ENV=development, DATABASE_URL, JWT_SECRET, FRONTEND_URL; API_PORT default 3333, HOST default 0.0.0.0                                                  |
-| Web local                              | NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL; defaults localhost fora de produção                                                                              |
-| Render API                             | NODE_ENV=production, DATABASE_URL, JWT_SECRET aleatório >=32 caracteres, FRONTEND_URL HTTPS, PORT fornecida pela plataforma, HOST=0.0.0.0                  |
-| Vercel web                             | NEXT_PUBLIC_API_URL HTTPS da API, NEXT_PUBLIC_APP_URL HTTPS do frontend                                                                                    |
-| Admin, somente durante provisionamento | SUPER_ADMIN_NAME, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD                                                                                                  |
-| Comercial                              | PAYMENT_GRACE_PERIOD_DAYS: inteiro 0 a 365, default 3                                                                                                      |
-| Recuperação                            | PASSWORD_RESET_TOKEN_TTL_MINUTES: 1 a 120, default 30; FRONTEND_URL, DATABASE_URL                                                                          |
-| Mercado Pago opcional, backend         | MERCADO_PAGO_ACCESS_TOKEN, MERCADO_PAGO_WEBHOOK_SECRET, MERCADO_PAGO_PLAN_ID, MERCADO_PAGO_SUCCESS_URL, MERCADO_PAGO_FAILURE_URL, MERCADO_PAGO_PENDING_URL |
-| Suporte público opcional               | NEXT_PUBLIC_SUPPORT_WHATSAPP, NEXT_PUBLIC_SUPPORT_EMAIL                                                                                                    |
-| Seed demo                              | NODE_ENV=development, ALLOW_DEMO_SEED=true; somente banco descartável                                                                                      |
+| Uso                                    | Variáveis                                                                                                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API local                              | NODE_ENV=development, DATABASE_URL, JWT_SECRET, FRONTEND_URL; API_PORT default 3333, HOST default 0.0.0.0                                                       |
+| Web local                              | NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL; defaults localhost fora de produção                                                                                   |
+| Render API                             | NODE_ENV=production, DATABASE_URL, JWT_SECRET aleatório >=32 caracteres, FRONTEND_URL HTTPS, PORT fornecida pela plataforma, HOST=0.0.0.0                       |
+| Vercel web                             | NEXT_PUBLIC_API_URL HTTPS da API, NEXT_PUBLIC_APP_URL HTTPS do frontend                                                                                         |
+| Admin, somente durante provisionamento | SUPER_ADMIN_NAME, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD                                                                                                       |
+| Comercial                              | PAYMENT_GRACE_PERIOD_DAYS: inteiro 0 a 365, default 3                                                                                                           |
+| Recuperação                            | PASSWORD_RESET_TOKEN_TTL_MINUTES: 1 a 120, default 30; FRONTEND_URL, DATABASE_URL                                                                               |
+| Mercado Pago opcional, backend         | MERCADO_PAGO_ACCESS_TOKEN, MERCADO_PAGO_WEBHOOK_SECRET, MERCADO_PAGO_ENVIRONMENT, MERCADO_PAGO_APPLICATION_ID, MERCADO_PAGO_COLLECTOR_ID, MERCADO_PAGO_BACK_URL |
+| Suporte público opcional               | NEXT_PUBLIC_SUPPORT_WHATSAPP, NEXT_PUBLIC_SUPPORT_EMAIL                                                                                                         |
+| Seed demo                              | NODE_ENV=development, ALLOW_DEMO_SEED=true; somente banco descartável                                                                                           |
 
 API_PORT prevalece sobre PORT; no Render deixe API_PORT ausente. FRONTEND_URL é a origem exata de CORS e links de reset. O marcador change-me dos exemplos é recusado em produção. NEXT_PUBLIC_APP_NAME está no exemplo, mas não é consumido.
 
 Mercado Pago permanece scaffold, mesmo com variáveis completas. Provider de e-mail permanece inativo, sem variáveis SMTP/Resend; nenhum desses segredos é necessário para iniciar. JWTs antigos não são revogados após reset, e rate limiter continua por instância.
+
+A preparação HTTP de teste usa somente `MERCADO_PAGO_TEST_ACCESS_TOKEN`, `MERCADO_PAGO_TEST_APPLICATION_ID`, `MERCADO_PAGO_TEST_COLLECTOR_ID`, `MERCADO_PAGO_TEST_BACK_URL` HTTPS e `MERCADO_PAGO_TEST_TIMEOUT_MS` (default 5000, máximo 30000), com `MERCADO_PAGO_ENVIRONMENT=TEST`. Não há fallback para credenciais genéricas ou `MERCADO_PAGO_PRODUCTION_*`. O transporte é exclusivamente simulado e não está conectado às rotas; não adicione credenciais novas ao Render/Vercel para esta etapa. Consulte [09-mercado-pago-testes.md](09-mercado-pago-testes.md) antes de preparar um ambiente isolado conectado.
 
 ## Provisionamento SUPER_ADMIN
 
@@ -47,11 +49,13 @@ O seed demo não provisiona admin. Bloqueia produção, test, ambiente indefinid
 
 ## Migrations e banco existente
 
-SQL das três migrations preservado: initial_schema, admin_access_control e password_reset_tokens. O lock antes ausente agora declara PostgreSQL. Não se confirmou estado aplicado no banco. As migrations administrativas e de tokens são aditivas; ALTER TABLE pode adquirir locks. Exclusão de User elimina seus tokens por cascade, conforme o modelo.
+As quatro migrations estão aplicadas com sucesso no Neon, branch `production`, database `neondb`: initial_schema, admin_access_control, password_reset_tokens e `20261012190000_billing_foundation`. O histórico consultado em leitura confirmou conclusão sem falhas e checksums correspondentes aos arquivos locais. O SQL das migrations permanece preservado e o lock declara PostgreSQL. A publicação da fundação de billing exige gerar o Prisma Client atualizado, sem reaplicar migrations, seed ou backfill.
 
-Antes de aplicar: confirme projeto/branch Neon, host e nome do banco em console seguro sem imprimir connection string; garanta backup/snapshot e restauração testada; reserve janela para locks; valide SQL em staging. Banco sem histórico ou criado com db push exige decisão de baseline após comparar schema real. Não marque migrations como aplicadas às cegas nem edite SQL já aplicado.
+O schema usa `map` para três nomes de índices truncados pelo PostgreSQL ao limite de 63 bytes. São os nomes já existentes de `Subscription`, `BillingCheckoutAttempt` e `BillingPayment`, sem mudança em campos, ordem das colunas, unicidade ou estrutura do banco. Esses mapeamentos não exigem nova migration. Exclusão de User elimina seus tokens por cascade, conforme o modelo.
 
-Na raiz, em job controlado usando Prisma 6 do lockfile:
+Antes de aplicar migrations futuras: confirme projeto/branch Neon, host e nome do banco em console seguro sem imprimir connection string; garanta backup/snapshot e restauração testada; reserve janela para locks; valide SQL em staging. Banco sem histórico ou criado com db push exige decisão de baseline após comparar schema real. Não marque migrations como aplicadas às cegas nem edite SQL já aplicado.
+
+Para migrations futuras pendentes, na raiz, em job controlado usando Prisma 6 do lockfile:
 
 ```powershell
 pnpm exec prisma migrate status --schema prisma/schema.prisma
@@ -72,7 +76,7 @@ O modelo atual suporta cortesia limitada, inclusive sem assinatura. Bloqueio man
 ## Ordem de publicação futura
 
 1. Preparar staging, segredos, backup, lint, build e testes.
-2. Confirmar destino/histórico e aplicar migrations em job controlado antes da nova API.
+2. Confirmar destino/histórico antes da nova API. A migration de billing já está aplicada; esta publicação não exige nova migration. Aplicar somente migrations futuras pendentes, em job controlado separado.
 3. Provisionar admin, revisar contas legadas e catálogo de planos. Planos/preços de produção exigem procedimento separado aprovado; nunca seed demo.
 4. Render: raiz do monorepo; build: `pnpm install --frozen-lockfile && pnpm db:generate && pnpm --filter @conecta-agenda/api build`; start: `pnpm --filter @conecta-agenda/api start`. Migrations são etapa anterior separada, não efeito oculto do start.
 5. Vercel: apps/web com acesso ao workspace e envs definidos antes do build. FRONTEND_URL deve corresponder à origem publicada; previews não são autorizados automaticamente pelo CORS.

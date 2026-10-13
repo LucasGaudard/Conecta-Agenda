@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { Prisma, SubscriptionStatus, UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 
 import { authenticate } from "../middlewares/auth";
 import { loginSchema, registerSchema } from "../schemas/auth";
@@ -11,6 +11,7 @@ import {
   resolveBusinessAccess,
   type BusinessAccessState,
 } from "../domain/business-access";
+import { createInitialTrial } from "../billing/policy";
 
 type AuthResponse = {
   user: {
@@ -117,6 +118,7 @@ export async function authRoutes(app: FastifyInstance) {
             id: true,
             name: true,
             slug: true,
+            createdAt: true,
           },
         });
 
@@ -130,7 +132,7 @@ export async function authRoutes(app: FastifyInstance) {
           data: {
             userId: user.id,
             planId: starterPlan.id,
-            status: SubscriptionStatus.ACTIVE,
+            ...createInitialTrial(business.createdAt),
           },
         });
 

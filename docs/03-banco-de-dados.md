@@ -9,6 +9,10 @@ Esta etapa define a modelagem inicial do Conecta Agenda com Prisma e PostgreSQL.
 - `BusinessSettings`: guarda preferencias operacionais do negocio, como timezone, moeda e intervalo de agenda.
 - `Plan`: representa planos comerciais do SaaS.
 - `Subscription`: representa a assinatura do usuario em um plano.
+- `ProviderPlan`: mapeia cada plano para um identificador do provider por ambiente.
+- `BillingCheckoutAttempt`: registra tentativas e chaves de idempotencia de checkout.
+- `BillingEvent`: registra notificacoes externas de forma deduplicavel.
+- `BillingPayment`: registra o resultado financeiro autoritativo por assinatura.
 - `Service`: representa servicos oferecidos por um negocio.
 - `Customer`: representa clientes de um negocio.
 - `WorkingHour`: representa horarios de atendimento por dia da semana.
@@ -20,6 +24,8 @@ Esta etapa define a modelagem inicial do Conecta Agenda com Prisma e PostgreSQL.
 
 - `AppointmentStatus`: `SCHEDULED`, `CONFIRMED`, `COMPLETED`, `CANCELED`, `NO_SHOW`
 - `SubscriptionStatus`: `TRIALING`, `ACTIVE`, `PAST_DUE`, `CANCELED`, `EXPIRED`
+- `BillingEnvironment`: `TEST`, `PRODUCTION`
+- `BillingProvider`: `MERCADO_PAGO`
 - `DayOfWeek`: `MONDAY`, `TUESDAY`, `WEDNESDAY`, `THURSDAY`, `FRIDAY`, `SATURDAY`, `SUNDAY`
 - `NotificationType`: `APPOINTMENT_CONFIRMATION`, `APPOINTMENT_REMINDER`, `APPOINTMENT_CANCELLATION`, `APPOINTMENT_RESCHEDULE`
 - `NotificationChannel`: `WHATSAPP_MANUAL`, `EMAIL`, `SYSTEM`

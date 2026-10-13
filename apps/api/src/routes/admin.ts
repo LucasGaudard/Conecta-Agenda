@@ -15,6 +15,7 @@ import {
 } from "../schemas/admin";
 import { hashPassword } from "../utils/password";
 import { generateUniqueBusinessSlug } from "../utils/slug";
+import { createInitialTrial } from "../billing/policy";
 
 type AdminBusinessRecord = {
   id: string;
@@ -394,7 +395,7 @@ export async function adminRoutes(app: FastifyInstance) {
               primaryColor: "#111827",
               accessOverrideUntil: parsed.data.accessOverrideUntil,
             },
-            select: { id: true },
+            select: { id: true, createdAt: true },
           });
 
           await tx.businessSettings.create({
@@ -405,7 +406,7 @@ export async function adminRoutes(app: FastifyInstance) {
             data: {
               userId: user.id,
               planId: plan.id,
-              status: SubscriptionStatus.ACTIVE,
+              ...createInitialTrial(business.createdAt),
             },
           });
 
