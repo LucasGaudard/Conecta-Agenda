@@ -12,6 +12,7 @@ import {
   cancelBillingSubscription,
 } from "@/lib/billing";
 import { formatCurrencyBRL } from "@/lib/format";
+import { getCheckoutRedirectUrl } from "@/lib/checkout-redirect";
 
 const date = (value: string | null) =>
   value ? new Date(value).toLocaleString("pt-BR") : "Não informado";
@@ -23,17 +24,21 @@ export function BillingPage() {
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [simulationMessage, setSimulationMessage] = useState<string | null>(null);
   async function perform(action: "checkout" | "cancel") {
     if (!token || processing) return;
     setProcessing(true);
     setError(null);
+    setSimulationMessage(null);
     try {
       if (action === "checkout") {
         const response = await createBillingCheckout(token);
-        const url = new URL(response.checkoutUrl);
-        if (url.protocol !== "https:" || url.username || url.password)
-          throw new Error("Endereço de pagamento inválido.");
-        window.location.assign(url.href);
+        const redirectUrl = getCheckoutRedirectUrl(response);
+        if (redirectUrl) window.location.assign(redirectUrl);
+        else
+          setSimulationMessage(
+            "Checkout simulado preparado. Nenhuma cobrança foi realizada.",
+          );
       } else {
         await cancelBillingSubscription(token);
         setConfirmCancel(false);
@@ -95,6 +100,11 @@ export function BillingPage() {
             {error}
           </p>
         )}
+        {simulationMessage && (
+          <p role="status" className="text-slate-700">
+            {simulationMessage}
+          </p>
+        )}
         {loading && <p role="status">Consultando assinatura...</p>}
         {billing && (
           <>
@@ -138,16 +148,20 @@ export function BillingPage() {
           </>
         )}
         <p className="text-sm text-slate-600">
-          {billing?.providerConfigured
-            ? "Pagamento online ainda indisponível. Fale com o suporte."
-            : "Pagamento online ainda não configurado."}
+          {billing?.checkoutMode === "SIMULATED"
+            ? "Ambiente de teste: checkout simulado, sem cobrança."
+            : billing?.providerConfigured
+              ? "Pagamento online ainda indisponível. Fale com o suporte."
+              : "Pagamento online ainda não configurado."}
         </p>
         <div className="flex flex-wrap gap-3">
           <Button
             disabled={!billing?.checkoutAvailable || processing}
             onClick={() => void perform("checkout")}
           >
-            Regularizar assinatura
+            {billing?.checkoutMode === "SIMULATED"
+              ? "Simular checkout"
+              : "Regularizar assinatura"}
           </Button>
           <Button asChild variant="outline">
             <a href="/settings/billing">Gerenciar assinatura</a>

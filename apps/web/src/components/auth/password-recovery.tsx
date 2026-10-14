@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@conecta-agenda/ui";
+import { Brand } from "@/components/app/brand";
 import { forgotPasswordRequest, resetPasswordRequest } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 
@@ -58,9 +59,12 @@ export function PasswordRecovery({ mode }: { mode: "forgot" | "reset" }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <section className="w-full max-w-md space-y-6 rounded-md border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-950">
+    <main className="auth-background flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+      <section className="w-full max-w-md space-y-6 surface p-8 shadow-sm">
+        <div className="mb-8">
+          <Brand />
+        </div>
+        <h1 className="text-2xl font-bold text-slate-950">
           {mode === "forgot" ? "Esqueci minha senha" : "Redefinir senha"}
         </h1>
         {success ? (

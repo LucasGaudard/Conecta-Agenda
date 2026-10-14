@@ -4,11 +4,12 @@
   "private": true,
   "packageManager": "pnpm@10.23.0",
   "scripts": {
-    "dev": "pnpm --parallel --filter @conecta-agenda/api --filter @conecta-agenda/web dev",
+    "dev": "node scripts/separate-development.cjs",
     "dev:api": "pnpm --filter @conecta-agenda/api dev",
     "dev:web": "pnpm --filter @conecta-agenda/web dev",
+    "dev:web:light": "pnpm --filter @conecta-agenda/web dev:light",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint && eslint prisma",
+    "lint": "pnpm -r lint && eslint prisma scripts apps/api/development-profile.cjs apps/api/development-connection.cjs apps/api/scripts apps/web/scripts",
     "format": "prettier . --write",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -17,7 +18,13 @@
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset",
     "db:admin:create": "tsx prisma/create-admin.ts",
-    "test": "tsx --test apps/api/src/domain/business-access.test.ts apps/api/src/routes/business-access.test.ts apps/api/src/billing/billing.test.ts apps/api/src/billing/policy.test.ts apps/api/src/billing/mercado-pago-http.test.ts apps/api/src/billing/subscription-preparation.test.ts apps/api/src/password-reset/password-reset.test.ts apps/api/src/load-env.test.ts prisma/provisioning.test.ts"
+    "dev:db": "node scripts/validate-neon-dev.cjs",
+    "dev:db:status": "node scripts/dev-database.cjs",
+    "dev:db:migrate": "node scripts/dev-database.cjs --apply",
+    "dev:db:fixtures": "tsx scripts/dev-fixtures.ts",
+    "dev:db:validate": "node scripts/validate-neon-dev.cjs",
+    "test:dev-config": "node scripts/test.cjs --test-isolation=none apps/api/src/development-profile.test.ts apps/api/src/development-connection.test.cjs apps/web/src/lib/config.test.ts",
+    "test": "node scripts/test.cjs apps/api/src/domain/business-access.test.ts apps/api/src/routes/business-access.test.ts apps/api/src/billing/billing.test.ts apps/api/src/billing/policy.test.ts apps/api/src/billing/mercado-pago-http.test.ts apps/api/src/billing/subscription-preparation.test.ts apps/api/src/billing/checkout.test.ts apps/web/src/lib/checkout-redirect.test.ts apps/web/src/lib/calendar.test.ts apps/api/src/password-reset/password-reset.test.ts apps/api/src/load-env.test.ts apps/api/src/development-profile.test.ts apps/api/src/development-connection.test.cjs apps/web/src/lib/config.test.ts prisma/provisioning.test.ts scripts/dev-database.test.cjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

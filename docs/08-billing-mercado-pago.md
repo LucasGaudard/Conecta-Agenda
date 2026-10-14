@@ -38,7 +38,7 @@ Access Token e segredo são exclusivos do backend. Em `PRODUCTION`, `MERCADO_PAG
 
 ## Cliente HTTP em teste
 
-O cliente `MercadoPagoTestHttpClient` prepara criação com plano, consulta e cancelamento de assinaturas, além da consulta do plano externo. Exige transporte `SIMULATED` injetado, não tem adapter `fetch` nem transporte padrão e não é usado pelas rotas públicas. O provider antigo permanece desativado mesmo com configuração completa. As variáveis genéricas acima continuam apenas no scaffold existente; o novo cliente não as usa como fallback.
+O cliente `MercadoPagoTestHttpClient` prepara criação com plano, consulta e cancelamento de assinaturas, além da consulta do plano externo. Exige transporte `SIMULATED` injetado e não tem adapter `fetch`. A rota de checkout agora usa serviço persistente simulado somente mediante opt-in em banco local isolado; permanece desativada em produção e para conexões Neon. O provider antigo permanece desativado mesmo com configuração completa. As variáveis genéricas acima continuam apenas no scaffold existente; o novo cliente não as usa como fallback.
 
 Credenciais e configurações de teste têm nomes `MERCADO_PAGO_TEST_*`, separados dos nomes `MERCADO_PAGO_PRODUCTION_*`, que estão reservados e não habilitam operações. A preparação seleciona somente TEST, valida IDs de aplicação/vendedor nas respostas e exige `ProviderPlan` TEST ativo com recorrência mensal, moeda BRL e valor igual ao plano interno. O procedimento e as limitações estão em [09-mercado-pago-testes.md](09-mercado-pago-testes.md).
 

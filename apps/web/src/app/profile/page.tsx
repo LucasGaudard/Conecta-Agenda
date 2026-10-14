@@ -158,9 +158,9 @@ export default function ProfilePage() {
   return (
     <AppShell title="Perfil">
       <section className="mx-auto w-full max-w-5xl">
-        <div className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="surface p-6 shadow-sm">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Perfil do negocio</h2>
+            <h1 className="text-2xl font-semibold text-slate-950">Perfil do negocio</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               Atualize as informacoes principais que identificam sua agenda.
             </p>
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                 />
               </Field>
 
-              <div className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
                 {getPublicAppUrl()}/{slug || "seu-slug"}
               </div>
 
@@ -259,24 +259,24 @@ export default function ProfilePage() {
                 />
               </Field>
 
-              <label className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                 <input type="checkbox" {...register("allowCancellation")} />
                 Permitir cancelamento
               </label>
 
-              <label className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                 <input type="checkbox" {...register("allowReschedule")} />
                 Permitir remarcacao
               </label>
 
               {error && (
-                <p className="sm:col-span-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <p className="sm:col-span-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                   {error}
                 </p>
               )}
 
               {success && (
-                <p className="sm:col-span-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                <p className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                   {success}
                 </p>
               )}

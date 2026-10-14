@@ -217,7 +217,7 @@ export default function PublicBusinessPage() {
   if (notFound) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
-        <section className="w-full max-w-md rounded-md border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <section className="w-full max-w-md surface empty-state p-8 text-center shadow-sm">
           <h1 className="text-2xl font-semibold text-slate-950">
             Profissional nao encontrado
           </h1>
@@ -232,7 +232,7 @@ export default function PublicBusinessPage() {
   if (error && !business) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
-        <section className="w-full max-w-md rounded-md border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+        <section className="w-full max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
           {error}
         </section>
       </main>
@@ -260,13 +260,13 @@ export default function PublicBusinessPage() {
 
       <section className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         {error && (
-          <div className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {step !== "success" && (
-          <div className="mb-6 rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
+          <div className="mb-6 surface p-4 text-sm text-slate-600 shadow-sm">
             <span className="font-medium text-slate-950">Agendamento:</span>{" "}
             {selectedService ? selectedService.name : "Escolha um servico"}{" "}
             {selectedDate ? `- ${formatDateBR(`${selectedDate}T00:00:00`)}` : ""}{" "}
@@ -345,7 +345,7 @@ function BusinessHeader({
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex gap-4">
           <div
-            className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md text-xl font-semibold text-white"
+            className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl text-xl font-semibold text-white"
             style={{ backgroundColor: primaryColor }}
           >
             {business.logoUrl ? (
@@ -412,7 +412,7 @@ function ServiceStep({
       </p>
 
       {services.length === 0 ? (
-        <div className="mt-6 rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <div className="mt-6 surface p-6 text-sm text-slate-600 shadow-sm">
           Este profissional ainda nao possui servicos disponiveis para agendamento.
         </div>
       ) : (
@@ -424,7 +424,7 @@ function ServiceStep({
               <article
                 key={service.id}
                 className={cn(
-                  "rounded-md border bg-white p-5 shadow-sm transition-colors",
+                  "rounded-xl border bg-white p-5 shadow-sm transition-colors",
                   selected ? "border-slate-950" : "border-slate-200",
                 )}
               >
@@ -437,7 +437,7 @@ function ServiceStep({
                       {service.description || "Sem descricao."}
                     </p>
                   </div>
-                  <span className="rounded-md bg-slate-100 px-2 py-1 text-sm font-medium text-slate-700">
+                  <span className="rounded-xl bg-slate-100 px-2 py-1 text-sm font-medium text-slate-700">
                     {formatCurrencyBRL(service.priceInCents)}
                   </span>
                 </div>
@@ -448,7 +448,7 @@ function ServiceStep({
                     {service.durationMinutes} minutos
                   </span>
                   <button
-                    className="h-10 rounded-md px-4 text-sm font-medium text-white"
+                    className="h-10 rounded-xl px-4 text-sm font-medium text-white"
                     style={{ backgroundColor: primaryColor }}
                     type="button"
                     onClick={() => onSelect(service)}
@@ -491,7 +491,7 @@ function DateTimeStep({
   today: string;
 }) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface p-5 shadow-sm">
       <h2 className="text-xl font-semibold text-slate-950">Escolha data e horario</h2>
       <p className="mt-2 text-sm text-slate-600">
         {service.name} - {service.durationMinutes} minutos
@@ -514,7 +514,7 @@ function DateTimeStep({
           <p className="mt-3 text-sm text-slate-600">Carregando horarios...</p>
         )}
         {!loadingTimes && selectedDate && availableTimes.length === 0 && (
-          <p className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <p className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             Nenhum horario disponivel para esta data.
           </p>
         )}
@@ -526,7 +526,7 @@ function DateTimeStep({
                 <button
                   key={time}
                   className={cn(
-                    "h-10 rounded-md border px-4 text-sm font-medium",
+                    "h-10 rounded-xl border px-4 text-sm font-medium",
                     selected ? "text-white" : "border-slate-200 bg-white text-slate-700",
                   )}
                   style={
@@ -573,7 +573,7 @@ function CustomerStep({
   register: ReturnType<typeof useForm<CustomerFormData>>["register"];
 }) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface p-5 shadow-sm">
       <h2 className="text-xl font-semibold text-slate-950">Seus dados</h2>
       <p className="mt-2 text-sm text-slate-600">
         Informe seus dados para confirmar o horario.
@@ -633,7 +633,7 @@ function ConfirmStep({
   submitting: boolean;
 }) {
   return (
-    <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface p-5 shadow-sm">
       <h2 className="text-xl font-semibold text-slate-950">Confirmar agendamento</h2>
       <div className="mt-5 space-y-2 text-sm text-slate-700">
         <p>
@@ -660,7 +660,7 @@ function ConfirmStep({
           Voltar
         </Button>
         <button
-          className="h-10 rounded-md px-4 text-sm font-medium text-white disabled:opacity-60"
+          className="h-10 rounded-xl px-4 text-sm font-medium text-white disabled:opacity-60"
           disabled={submitting}
           style={{ backgroundColor: primaryColor }}
           type="button"
@@ -681,12 +681,12 @@ function SuccessStep({
   onRestart: () => void;
 }) {
   return (
-    <section className="rounded-md border border-emerald-200 bg-white p-6 text-center shadow-sm">
+    <section className="rounded-xl border border-emerald-200 bg-white p-6 text-center shadow-sm">
       <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
       <h2 className="mt-4 text-2xl font-semibold text-slate-950">
         Agendamento confirmado!
       </h2>
-      <div className="mx-auto mt-5 max-w-md space-y-2 rounded-md bg-slate-50 p-4 text-left text-sm text-slate-700">
+      <div className="mx-auto mt-5 max-w-md space-y-2 rounded-xl bg-slate-50 p-4 text-left text-sm text-slate-700">
         <p>
           <strong>Servico:</strong> {response.appointment.serviceName}
         </p>
@@ -728,7 +728,7 @@ function WhatsAppLink({
 }) {
   return (
     <a
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium text-white"
+      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium text-white"
       href={createWhatsappLink(whatsapp)}
       rel="noreferrer"
       style={{ backgroundColor: primaryColor }}

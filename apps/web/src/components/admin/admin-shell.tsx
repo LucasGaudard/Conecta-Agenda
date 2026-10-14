@@ -1,26 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, BriefcaseBusiness, LogOut, Plus, RotateCcw } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, LogOut, Plus, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-
 import { Button } from "@conecta-agenda/ui";
-import { cn } from "@conecta-agenda/utils";
-
 import { useAuth } from "@/hooks/use-auth";
+import { Brand } from "@/components/app/brand";
+import { NavItem } from "@/components/app/nav-item";
+import { MobileNav } from "@/components/app/mobile-nav";
 
 const adminNavItems = [
-  { title: "Visao geral", href: "/admin", icon: BarChart3 },
+  { title: "Visão geral", href: "/admin", icon: BarChart3 },
   { title: "Profissionais", href: "/admin/businesses", icon: BriefcaseBusiness },
   { title: "Criar profissional", href: "/admin/businesses/new", icon: Plus },
 ] as const;
 
-type AdminShellProps = {
-  children: ReactNode;
-  title: string;
-};
+type AdminShellProps = { children: ReactNode; title: string };
 
 export function AdminShell({ children, title }: AdminShellProps) {
   const pathname = usePathname();
@@ -28,18 +24,12 @@ export function AdminShell({ children, title }: AdminShellProps) {
   const { isAuthenticated, loading, logout, user } = useAuth();
 
   useEffect(() => {
-    if (loading) {
-      return;
-    }
-
+    if (loading) return;
     if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
-
-    if (user?.role !== "SUPER_ADMIN") {
-      router.replace("/dashboard");
-    }
+    if (user?.role !== "SUPER_ADMIN") router.replace("/dashboard");
   }, [isAuthenticated, loading, router, user?.role]);
 
   function handleLogout() {
@@ -50,83 +40,98 @@ export function AdminShell({ children, title }: AdminShellProps) {
   if (loading || !isAuthenticated || user?.role !== "SUPER_ADMIN") {
     return (
       <main className="flex min-h-screen items-center justify-center px-6 py-12">
-        <p className="text-sm text-slate-600">Carregando...</p>
+        <p role="status" className="text-sm text-slate-600">
+          Carregando...
+        </p>
       </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 lg:flex">
-      <aside className="hidden min-h-screen w-64 border-r border-slate-200 bg-white px-4 py-5 lg:block">
+    <div className="workspace min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only z-50 focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-xl focus:bg-white focus:p-3"
+      >
+        Ir para o conteúdo
+      </a>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200/70 bg-white/90 px-4 py-6 lg:flex">
         <div className="px-2">
-          <p className="text-sm font-semibold text-slate-950">Conecta Agenda</p>
-          <p className="text-xs text-slate-500">Administracao</p>
+          <Brand subtitle="Administração global" />
         </div>
-
-        <nav className="mt-8 space-y-1">
-          {adminNavItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                className={cn(
-                  "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-slate-950 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
-                )}
-                href={item.href}
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {item.title}
-              </Link>
-            );
-          })}
+        <nav
+          aria-label="Menu da administração global"
+          className="mt-9 flex-1 space-y-1 overflow-y-auto"
+        >
+          {adminNavItems.map((item) => (
+            <NavItem
+              key={item.href}
+              {...item}
+              isActive={
+                pathname === item.href ||
+                (item.href === "/admin/businesses" &&
+                  pathname.startsWith("/admin/businesses/") &&
+                  pathname !== "/admin/businesses/new")
+              }
+            />
+          ))}
         </nav>
+        <div className="rounded-2xl bg-violet-50 p-4">
+          <ShieldCheck aria-hidden="true" className="mb-3 size-5 text-violet-600" />
+          <p className="text-sm font-semibold">Controle da plataforma</p>
+          <p className="mt-2 text-xs leading-5 text-slate-600">
+            Gerencie profissionais, assinaturas, bloqueios e cortesias.
+          </p>
+        </div>
+        <div className="mt-5 flex items-center gap-3 border-t border-slate-200 pt-4">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700">
+            {user.name.trim().charAt(0).toLocaleUpperCase("pt-BR")}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-semibold">{user.name}</p>
+            <p className="text-[11px] text-slate-500">SUPER_ADMIN</p>
+          </div>
+        </div>
       </aside>
-
-      <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:px-8">
+      <div className="min-w-0 lg:pl-64">
+        <header className="sticky top-0 z-20 border-b border-slate-200/60 bg-white/85 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold text-slate-950">{title}</h1>
-              <p className="truncate text-xs text-slate-500">{user.name}</p>
+            <div className="flex min-w-0 items-center gap-3">
+              <MobileNav
+                pathname={pathname}
+                items={adminNavItems}
+                label="Menu da administração global"
+                subtitle="Administração global"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-950">{title}</p>
+                <p className="mt-0.5 text-xs text-slate-500">Administração global</p>
+              </div>
             </div>
-
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button asChild size="sm" type="button" variant="outline">
-                <Link href="/dashboard">
-                  <RotateCcw aria-hidden="true" className="size-4" />
-                  Voltar ao sistema
-                </Link>
-              </Button>
-              <Button size="sm" type="button" variant="outline" onClick={handleLogout}>
+            <div className="flex items-center gap-3">
+              <span className="hidden rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 sm:inline-flex">
+                SUPER_ADMIN
+              </span>
+              <Button
+                aria-label="Sair"
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={handleLogout}
+              >
                 <LogOut aria-hidden="true" className="size-4" />
-                Sair
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
           </div>
-
-          <nav className="mt-3 flex gap-2 overflow-x-auto lg:hidden">
-            {adminNavItems.map((item) => (
-              <Link
-                key={item.href}
-                className={cn(
-                  "whitespace-nowrap rounded-md border px-3 py-2 text-sm font-medium",
-                  pathname === item.href
-                    ? "border-slate-950 bg-slate-950 text-white"
-                    : "border-slate-200 bg-white text-slate-600",
-                )}
-                href={item.href}
-              >
-                {item.title}
-              </Link>
-            ))}
-          </nav>
         </header>
-
-        <main className="px-4 py-6 lg:px-8">{children}</main>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

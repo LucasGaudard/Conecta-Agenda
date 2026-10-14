@@ -8,11 +8,12 @@ export function getBillingProvider(config = getBillingConfig()): BillingProvider
     ? new MercadoPagoBillingProvider(config)
     : new UnconfiguredBillingProvider();
 }
-export function getBillingCapabilities() {
+export function getBillingCapabilities(simulatedCheckout = false) {
   return {
     provider: "MERCADO_PAGO" as const,
-    providerConfigured: getBillingConfig().providerConfigured,
-    checkoutAvailable: false,
+    providerConfigured: simulatedCheckout || getBillingConfig().providerConfigured,
+    checkoutAvailable: simulatedCheckout,
     cancellationAvailable: false,
+    ...(simulatedCheckout ? { checkoutMode: "SIMULATED" as const } : {}),
   };
 }

@@ -3,7 +3,7 @@ import { passwordResetRoutes } from "./routes/password-reset";
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 
-import { billingRoutes } from "./routes/billing";
+import { billingRoutes, type BillingRoutesOptions } from "./routes/billing";
 import { env } from "./env";
 import { appointmentsRoutes } from "./routes/appointments";
 import { adminRoutes } from "./routes/admin";
@@ -19,7 +19,7 @@ import { publicRoutes } from "./routes/public";
 import { servicesRoutes } from "./routes/services";
 import { workingHoursRoutes } from "./routes/working-hours";
 
-export function buildApp() {
+export function buildApp(options: BillingRoutesOptions = {}) {
   const app = Fastify({
     logger: true,
   });
@@ -29,7 +29,7 @@ export function buildApp() {
     credentials: true,
   });
 
-  app.register(billingRoutes);
+  app.register(billingRoutes, options);
   app.register(passwordResetRoutes);
   app.register(billingWebhookRoutes);
   app.register(healthRoutes);

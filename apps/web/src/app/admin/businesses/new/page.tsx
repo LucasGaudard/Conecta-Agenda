@@ -82,15 +82,18 @@ export default function NewAdminBusinessPage() {
 
   return (
     <AdminShell title="Criar profissional">
-      <section className="mx-auto w-full max-w-4xl rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="mx-auto w-full max-w-4xl surface p-6 shadow-sm">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-950">Criar profissional</h2>
+          <h1 className="text-2xl font-semibold text-slate-950">Criar profissional</h1>
           <p className="mt-2 text-sm text-slate-600">
             Cadastre uma conta profissional manualmente.
           </p>
         </div>
 
-        <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="mt-6 grid gap-4 sm:grid-cols-2"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <Field label="Nome do proprietario" error={errors.ownerName?.message}>
             <input className="field-input" {...register("ownerName")} />
           </Field>
@@ -129,17 +132,21 @@ export default function NewAdminBusinessPage() {
           </Field>
 
           <Field label="Cortesia ate" error={errors.accessOverrideUntil?.message}>
-            <input className="field-input" type="date" {...register("accessOverrideUntil")} />
+            <input
+              className="field-input"
+              type="date"
+              {...register("accessOverrideUntil")}
+            />
           </Field>
 
           {error && (
-            <p className="sm:col-span-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="sm:col-span-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           )}
 
           {success && (
-            <p className="sm:col-span-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            <p className="sm:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {success}
             </p>
           )}

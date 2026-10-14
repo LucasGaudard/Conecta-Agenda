@@ -147,25 +147,31 @@ export default function AdminBusinessDetailsPage() {
         {loading && <p className="text-sm text-slate-600">Carregando...</p>}
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
           </p>
         )}
 
         {success && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          >
             {success}
           </p>
         )}
 
         {business && (
           <>
-            <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="surface p-5 shadow-sm">
               <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                 <div>
-                  <h2 className="text-2xl font-semibold text-slate-950">
+                  <h1 className="text-2xl font-semibold text-slate-950">
                     {business.name}
-                  </h2>
+                  </h1>
                   <p className="mt-2 text-sm text-slate-600">
                     {business.owner.name} - {business.owner.email}
                   </p>
@@ -173,7 +179,7 @@ export default function AdminBusinessDetailsPage() {
                     Link publico: {getPublicAppUrl()}/{business.slug}
                   </p>
                 </div>
-                <div className="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
+                <div className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
                   {business.access.status}
                 </div>
               </div>
@@ -233,7 +239,7 @@ export default function AdminBusinessDetailsPage() {
               </Info>
             </section>
 
-            <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="surface p-5 shadow-sm">
               <h3 className="text-lg font-semibold text-slate-950">
                 Controle manual de acesso
               </h3>
@@ -298,7 +304,7 @@ export default function AdminBusinessDetailsPage() {
 
 function Info({ children, title }: { children: React.ReactNode; title: string }) {
   return (
-    <article className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="surface p-5 shadow-sm">
       <h3 className="text-lg font-semibold text-slate-950">{title}</h3>
       <div className="mt-4 space-y-3">{children}</div>
     </article>

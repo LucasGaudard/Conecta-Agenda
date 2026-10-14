@@ -49,6 +49,22 @@ const checkoutUrl = z
       !url.port
     );
   });
+
+export function validateMercadoPagoCheckoutUrl(
+  value: unknown,
+  providerId: string,
+): string {
+  const parsed = checkoutUrl.safeParse(value);
+  if (!parsed.success) throw new MercadoPagoHttpError("MP_CHECKOUT_URL_INVALID");
+  const url = new URL(parsed.data);
+  if (
+    url.hash ||
+    url.searchParams.size !== 1 ||
+    url.searchParams.get("preapproval_id") !== providerId
+  )
+    throw new MercadoPagoHttpError("MP_CHECKOUT_URL_INVALID");
+  return url.href;
+}
 const subscriptionSchema = z.object({
   id: identifier,
   application_id: accountId,

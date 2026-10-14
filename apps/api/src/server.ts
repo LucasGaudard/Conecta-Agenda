@@ -1,5 +1,5 @@
-import { buildApp } from "./app";
 import { env } from "./env";
+import { buildApp } from "./app";
 
 const app = buildApp();
 

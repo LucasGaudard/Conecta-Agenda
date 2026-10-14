@@ -12,7 +12,11 @@ import { Button } from "@conecta-agenda/ui";
 import { AppShell } from "@/components/app/app-shell";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
-import { createBlockedTime, deleteBlockedTime, getBlockedTimes } from "@/lib/blocked-times";
+import {
+  createBlockedTime,
+  deleteBlockedTime,
+  getBlockedTimes,
+} from "@/lib/blocked-times";
 import { formatDateBR } from "@/lib/format";
 import { getWorkingHours, updateWorkingHours } from "@/lib/working-hours";
 
@@ -112,7 +116,9 @@ export default function WorkingHoursPage() {
 
   function updateHour(dayOfWeek: DayOfWeek, changes: Partial<WorkingHourDTO>) {
     setWorkingHours((current) =>
-      current.map((hour) => (hour.dayOfWeek === dayOfWeek ? { ...hour, ...changes } : hour)),
+      current.map((hour) =>
+        hour.dayOfWeek === dayOfWeek ? { ...hour, ...changes } : hour,
+      ),
     );
   }
 
@@ -257,31 +263,45 @@ export default function WorkingHoursPage() {
     <AppShell title="Horarios">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <section>
-          <h2 className="text-2xl font-semibold text-slate-950">Horarios de atendimento</h2>
+          <h1 className="text-2xl font-semibold text-slate-950">
+            Horarios de atendimento
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Defina os dias e horarios em que sua agenda estara disponivel.
           </p>
         </section>
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
           </p>
         )}
 
         {success && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          >
             {success}
           </p>
         )}
 
-        <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="surface p-5 shadow-sm">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-lg font-semibold text-slate-950">Horarios semanais</h3>
-              <p className="mt-1 text-sm text-slate-600">Configure os 7 dias da semana.</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Configure os 7 dias da semana.
+              </p>
             </div>
-            <Button type="button" disabled={savingHours || loading} onClick={handleSaveWorkingHours}>
+            <Button
+              type="button"
+              disabled={savingHours || loading}
+              onClick={handleSaveWorkingHours}
+            >
               {savingHours ? "Salvando..." : "Salvar horarios"}
             </Button>
           </div>
@@ -293,7 +313,7 @@ export default function WorkingHoursPage() {
               {workingHours.map((hour) => (
                 <article
                   key={hour.dayOfWeek}
-                  className="rounded-md border border-slate-200 bg-slate-50 p-4"
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
                 >
                   <div className="grid gap-3 lg:grid-cols-[1.1fr_0.8fr_0.8fr_0.8fr_0.8fr] lg:items-end">
                     <label className="flex items-center gap-3">
@@ -317,7 +337,9 @@ export default function WorkingHoursPage() {
                     <TimeInput
                       label="Inicio"
                       value={hour.startTime}
-                      onChange={(value) => updateHour(hour.dayOfWeek, { startTime: value })}
+                      onChange={(value) =>
+                        updateHour(hour.dayOfWeek, { startTime: value })
+                      }
                     />
                     <TimeInput
                       label="Fim"
@@ -334,7 +356,9 @@ export default function WorkingHoursPage() {
                     <TimeInput
                       label="Intervalo fim"
                       value={hour.breakEnd ?? ""}
-                      onChange={(value) => updateHour(hour.dayOfWeek, { breakEnd: value || null })}
+                      onChange={(value) =>
+                        updateHour(hour.dayOfWeek, { breakEnd: value || null })
+                      }
                     />
                   </div>
                 </article>
@@ -344,9 +368,11 @@ export default function WorkingHoursPage() {
         </section>
 
         <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="surface p-5 shadow-sm">
             <h3 className="text-lg font-semibold text-slate-950">Novo bloqueio</h3>
-            <p className="mt-1 text-sm text-slate-600">Reserve um horario especifico na agenda.</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Reserve um horario especifico na agenda.
+            </p>
 
             <form className="mt-5 space-y-4" onSubmit={handleSubmit(onCreateBlockedTime)}>
               <Field label="Data" error={errors.date?.message}>
@@ -369,10 +395,20 @@ export default function WorkingHoursPage() {
             </form>
           </div>
 
-          <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-950">Bloqueios especificos</h3>
-            {blockedTimes.length === 0 ? (
-              <p className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="surface p-5 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-950">
+              Bloqueios especificos
+            </h3>
+            {loading ? (
+              <p role="status" className="mt-5 text-sm text-slate-600">
+                Carregando bloqueios...
+              </p>
+            ) : error && blockedTimes.length === 0 ? (
+              <p className="mt-5 text-sm text-slate-600">
+                Não foi possível confirmar os bloqueios. Tente recarregar a página.
+              </p>
+            ) : blockedTimes.length === 0 ? (
+              <p className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                 Nenhum horario bloqueado.
               </p>
             ) : (
@@ -380,12 +416,12 @@ export default function WorkingHoursPage() {
                 {blockedTimes.map((blockedTime) => (
                   <article
                     key={blockedTime.id}
-                    className="flex flex-col justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
+                    className="flex flex-col justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center"
                   >
                     <div>
                       <p className="text-sm font-semibold text-slate-950">
-                        {formatDateBR(`${blockedTime.date}T00:00:00`)} - {blockedTime.startTime} as{" "}
-                        {blockedTime.endTime}
+                        {formatDateBR(`${blockedTime.date}T00:00:00`)} -{" "}
+                        {blockedTime.startTime} as {blockedTime.endTime}
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
                         {blockedTime.reason || "Sem motivo informado."}
@@ -412,7 +448,9 @@ export default function WorkingHoursPage() {
 }
 
 function sortWorkingHours(hours: WorkingHourDTO[]) {
-  return [...hours].sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
+  return [...hours].sort(
+    (a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek),
+  );
 }
 
 function TimeInput({

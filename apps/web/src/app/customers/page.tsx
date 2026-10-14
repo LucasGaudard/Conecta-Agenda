@@ -141,9 +141,9 @@ export default function CustomersPage() {
   return (
     <AppShell title="Clientes">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <section className="page-heading flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Clientes</h2>
+            <h1 className="text-2xl font-semibold text-slate-950">Clientes</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               Gerencie os clientes cadastrados.
             </p>
@@ -154,7 +154,7 @@ export default function CustomersPage() {
           </Button>
         </section>
 
-        <section className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="surface p-4 shadow-sm">
           <label className="relative block w-full lg:max-w-md">
             <Search
               aria-hidden="true"
@@ -162,6 +162,7 @@ export default function CustomersPage() {
             />
             <input
               className="field-input pl-9"
+              aria-label="Buscar clientes por nome ou WhatsApp"
               placeholder="Buscar por nome ou WhatsApp"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -170,7 +171,7 @@ export default function CustomersPage() {
         </section>
 
         {showForm && (
-          <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="surface p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-950">
@@ -185,16 +186,27 @@ export default function CustomersPage() {
               </Button>
             </div>
 
-            <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+            <form
+              className="mt-5 grid gap-4 sm:grid-cols-2"
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <Field label="Nome" error={errors.name?.message}>
                 <input className="field-input" {...register("name")} />
               </Field>
 
               <Field label="WhatsApp" error={errors.whatsapp?.message}>
-                <input className="field-input" inputMode="tel" {...register("whatsapp")} />
+                <input
+                  className="field-input"
+                  inputMode="tel"
+                  {...register("whatsapp")}
+                />
               </Field>
 
-              <Field className="sm:col-span-2" label="Observacoes" error={errors.notes?.message}>
+              <Field
+                className="sm:col-span-2"
+                label="Observacoes"
+                error={errors.notes?.message}
+              >
                 <textarea className="field-input min-h-24 py-2" {...register("notes")} />
               </Field>
 
@@ -208,18 +220,29 @@ export default function CustomersPage() {
         )}
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
+            {customers.length > 0 && (
+              <span className="mt-1 block text-xs">
+                A lista abaixo contém os últimos dados carregados.
+              </span>
+            )}
           </p>
         )}
 
         {success && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          >
             {success}
           </p>
         )}
 
-        <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+        <section className="surface shadow-sm">
           <div className="hidden grid-cols-[1.2fr_1fr_1fr_0.7fr_1.3fr_0.6fr] gap-4 border-b border-slate-200 px-5 py-3 text-xs font-medium uppercase text-slate-500 lg:grid">
             <span>Nome</span>
             <span>WhatsApp</span>
@@ -233,11 +256,15 @@ export default function CustomersPage() {
             <p className="p-6 text-sm text-slate-600">Carregando clientes...</p>
           )}
 
-          {!loadingCustomers && customers.length === 0 && (
-            <div className="p-8 text-center">
-              <p className="text-base font-medium text-slate-950">Nenhum cliente cadastrado.</p>
+          {!loadingCustomers && !error && customers.length === 0 && (
+            <div className="empty-state p-8 text-center">
+              <p className="text-base font-medium text-slate-950">
+                {search ? "Nenhum cliente encontrado." : "Nenhum cliente cadastrado."}
+              </p>
               <p className="mt-2 text-sm text-slate-600">
-                Cadastre clientes manualmente para manter historico e observacoes.
+                {search
+                  ? "Experimente outro nome ou WhatsApp na busca."
+                  : "Cadastre clientes para manter o histórico e as observações."}
               </p>
               <Button className="mt-5" type="button" onClick={openCreateForm}>
                 Cadastrar cliente
@@ -265,7 +292,11 @@ export default function CustomersPage() {
                   <span className="line-clamp-2">{customer.notes || "-"}</span>
                 </Cell>
                 <div className="flex lg:justify-end">
-                  <Button type="button" variant="outline" onClick={() => openEditForm(customer)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => openEditForm(customer)}
+                  >
                     <Pencil aria-hidden="true" className="size-4" />
                     Editar
                   </Button>

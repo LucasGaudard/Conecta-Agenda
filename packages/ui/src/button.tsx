@@ -5,12 +5,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@conecta-agenda/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-slate-950 text-white hover:bg-slate-800",
-        outline: "border border-slate-300 bg-white text-slate-950 hover:bg-slate-100",
+        default:
+          "bg-violet-600 text-white shadow-sm shadow-violet-200/50 hover:bg-violet-700",
+        outline:
+          "border border-slate-200 bg-white text-slate-700 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700",
       },
       size: {
         default: "h-10 px-4 py-2",

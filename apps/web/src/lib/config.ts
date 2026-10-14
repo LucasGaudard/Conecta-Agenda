@@ -1,5 +1,17 @@
 const LOCAL_API_URL = "http://localhost:3333";
-const LOCAL_APP_URL = "http://localhost:3000";
+const LOCAL_APP_URL = "http://localhost:3001";
+
+export function validateDevelopmentWebUrl(
+  value: string,
+  expected: string,
+  envName: string,
+) {
+  if (value.replace(/\/+$/, "") !== expected) {
+    throw new Error(
+      `Configuração local inválida: ${envName} deve usar o endereço local previsto.`,
+    );
+  }
+}
 
 function normalizeUrl(value: string) {
   return value.replace(/\/+$/, "");
@@ -13,7 +25,9 @@ function assertHttpUrl(value: string, envName: string) {
       throw new Error("Invalid protocol.");
     }
   } catch {
-    throw new Error(`Configuracao invalida: ${envName} deve ser uma URL http(s) absoluta.`);
+    throw new Error(
+      `Configuracao invalida: ${envName} deve ser uma URL http(s) absoluta.`,
+    );
   }
 }
 
@@ -21,6 +35,8 @@ export function getApiBaseUrl() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
   if (apiUrl) {
+    if (process.env.NODE_ENV === "development")
+      validateDevelopmentWebUrl(apiUrl, LOCAL_API_URL, "NEXT_PUBLIC_API_URL");
     assertHttpUrl(apiUrl, "NEXT_PUBLIC_API_URL");
 
     const normalizedApiUrl = normalizeUrl(apiUrl);
@@ -52,6 +68,8 @@ export function getPublicAppUrl() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (appUrl) {
+    if (process.env.NODE_ENV === "development")
+      validateDevelopmentWebUrl(appUrl, LOCAL_APP_URL, "NEXT_PUBLIC_APP_URL");
     assertHttpUrl(appUrl, "NEXT_PUBLIC_APP_URL");
     return normalizeUrl(appUrl);
   }

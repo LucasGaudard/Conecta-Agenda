@@ -82,9 +82,9 @@ export default function AdminBusinessesPage() {
   return (
     <AdminShell title="Profissionais">
       <div className="mx-auto w-full max-w-7xl space-y-6">
-        <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <section className="page-heading flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Profissionais</h2>
+            <h1 className="text-2xl font-semibold text-slate-950">Profissionais</h1>
             <p className="mt-2 text-sm text-slate-600">
               Consulte contas cadastradas e acompanhe acesso.
             </p>
@@ -94,7 +94,7 @@ export default function AdminBusinessesPage() {
           </Button>
         </section>
 
-        <section className="grid gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[1fr_220px_220px]">
+        <section className="grid gap-3 surface p-4 shadow-sm lg:grid-cols-[1fr_220px_220px]">
           <label className="relative">
             <Search
               aria-hidden="true"
@@ -102,6 +102,7 @@ export default function AdminBusinessesPage() {
             />
             <input
               className="field-input pl-9"
+              aria-label="Buscar profissionais"
               placeholder="Buscar por negocio, proprietario, e-mail, slug ou WhatsApp"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -109,6 +110,7 @@ export default function AdminBusinessesPage() {
           </label>
 
           <select
+            aria-label="Filtrar profissionais por acesso"
             className="field-input"
             value={accessStatus}
             onChange={(event) => setAccessStatus(event.target.value)}
@@ -121,6 +123,7 @@ export default function AdminBusinessesPage() {
           </select>
 
           <select
+            aria-label="Filtrar profissionais por assinatura"
             className="field-input"
             value={subscriptionStatus}
             onChange={(event) => setSubscriptionStatus(event.target.value)}
@@ -134,12 +137,15 @@ export default function AdminBusinessesPage() {
         </section>
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
           </p>
         )}
 
-        <section className="rounded-md border border-slate-200 bg-white shadow-sm">
+        <section className="surface shadow-sm">
           <div className="hidden grid-cols-[1.2fr_1fr_1fr_0.8fr_0.9fr_0.9fr_0.7fr] gap-4 border-b border-slate-200 px-5 py-3 text-xs font-medium uppercase text-slate-500 xl:grid">
             <span>Negocio</span>
             <span>Proprietario</span>
@@ -152,13 +158,14 @@ export default function AdminBusinessesPage() {
 
           {loading && <p className="p-6 text-sm text-slate-600">Carregando...</p>}
 
-          {!loading && businesses.length === 0 && (
+          {!loading && !error && businesses.length === 0 && (
             <p className="p-8 text-center text-sm text-slate-600">
               Nenhum profissional encontrado.
             </p>
           )}
 
           {!loading &&
+            !error &&
             businesses.map((business) => (
               <article
                 key={business.id}
@@ -171,7 +178,17 @@ export default function AdminBusinessesPage() {
                 <Cell label="Proprietario">{business.owner.name}</Cell>
                 <Cell label="E-mail">{business.owner.email}</Cell>
                 <Cell label="Plano">{business.subscription?.plan.name ?? "-"}</Cell>
-                <Cell label="Assinatura"><span className={business.subscription?.status === "PAST_DUE" ? "font-semibold text-red-700" : undefined}>{business.subscription?.status ?? "-"}</span></Cell>
+                <Cell label="Assinatura">
+                  <span
+                    className={
+                      business.subscription?.status === "PAST_DUE"
+                        ? "font-semibold text-red-700"
+                        : undefined
+                    }
+                  >
+                    {business.subscription?.status ?? "-"}
+                  </span>
+                </Cell>
                 <Cell label="Acesso">
                   <AccessBadge status={business.access.status} />
                   <p>{business.access.canAccess ? "Liberado" : "Sem acesso"}</p>
@@ -222,7 +239,7 @@ function AccessBadge({ status }: { status: BusinessAccessStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-1 text-xs font-medium",
+        "inline-flex rounded-xl px-2 py-1 text-xs font-medium",
         status === "ACTIVE" && "bg-emerald-50 text-emerald-700",
         status === "TRIAL" && "bg-amber-50 text-amber-700",
         status === "OVERRIDE_ACTIVE" && "bg-sky-50 text-sky-700",

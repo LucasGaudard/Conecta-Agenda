@@ -25,7 +25,11 @@ export default function SettingsPage() {
     meRequest(token)
       .then(setAccount)
       .catch((requestError) => {
-        setError(requestError instanceof Error ? requestError.message : "Nao foi possivel carregar as configuracoes.");
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Nao foi possivel carregar as configuracoes.",
+        );
         if (requestError instanceof ApiError && requestError.status === 401) logout();
       })
       .finally(() => setLoading(false));
@@ -39,29 +43,68 @@ export default function SettingsPage() {
   return (
     <AppShell title="Configuracoes">
       <div className="mx-auto w-full max-w-4xl space-y-5">
-        {loading && <p className="rounded-md border border-slate-200 bg-white p-5 text-sm text-slate-600">Carregando configuracoes...</p>}
-        {error && <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+        <section className="page-heading">
+          <h1 className="text-2xl font-bold">Configurações</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Sua conta, seu negócio e as preferências de acesso.
+          </p>
+        </section>
+        {loading && (
+          <p className="surface p-5 text-sm text-slate-600">
+            Carregando configuracoes...
+          </p>
+        )}
+        {error && (
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          >
+            {error}
+          </p>
+        )}
         {account?.business && (
           <>
-            <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3"><UserRound aria-hidden="true" className="size-5 text-slate-500" /><h2 className="text-lg font-semibold text-slate-950">Sua conta</h2></div>
+            <section className="surface p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <UserRound aria-hidden="true" className="size-5 text-slate-500" />
+                <h2 className="text-lg font-semibold text-slate-950">Sua conta</h2>
+              </div>
               <dl className="mt-5 grid gap-4 sm:grid-cols-2">
                 <Info label="Nome" value={account.user.name} />
                 <Info label="E-mail" value={account.user.email} />
                 <Info label="Negocio" value={account.business.name} />
                 <Info label="Link publico" value={`/${account.business.slug}`} />
               </dl>
-              <Button asChild className="mt-5" variant="outline"><Link href="/profile">Editar perfil do negocio</Link></Button>
+              <Button asChild className="mt-5" variant="outline">
+                <Link href="/profile">Editar perfil do negocio</Link>
+              </Button>
             </section>
-            <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="surface p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-950">Plano e assinatura</h2>
-              <p className="mt-3 text-2xl font-semibold text-slate-950">{account.subscription?.plan.name ?? "Starter"}</p>
-              <p className="mt-1 text-sm text-slate-600">Status: {account.subscription?.status ?? "Nao informado"}</p>
-              <p className="mt-3 text-sm text-slate-500">A cobranca e a troca de plano ainda nao fazem parte desta versao.</p>
+              <p className="mt-3 text-2xl font-semibold text-slate-950">
+                {account.subscription?.plan.name ?? "Nenhum plano informado"}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                Status: {account.subscription?.status ?? "Nao informado"}
+              </p>
+              <p className="mt-3 text-sm text-slate-500">
+                Consulte seu acesso e as opções disponíveis na página da assinatura.
+              </p>
+              <Button asChild className="mt-5" variant="outline">
+                <Link href="/settings/billing">Ver minha assinatura</Link>
+              </Button>
             </section>
-            <section className="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="surface p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-slate-950">Sessao</h2>
-              <Button className="mt-4" type="button" variant="outline" onClick={handleLogout}><LogOut aria-hidden="true" className="size-4" />Sair da conta</Button>
+              <Button
+                className="mt-4"
+                type="button"
+                variant="outline"
+                onClick={handleLogout}
+              >
+                <LogOut aria-hidden="true" className="size-4" />
+                Sair da conta
+              </Button>
             </section>
           </>
         )}
@@ -71,5 +114,10 @@ export default function SettingsPage() {
 }
 
 function Info({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-md bg-slate-50 p-4"><dt className="text-xs font-medium uppercase text-slate-500">{label}</dt><dd className="mt-1 break-words text-sm text-slate-800">{value}</dd></div>;
+  return (
+    <div className="rounded-xl bg-slate-50 p-4">
+      <dt className="text-xs font-medium uppercase text-slate-500">{label}</dt>
+      <dd className="mt-1 break-words text-sm text-slate-800">{value}</dd>
+    </div>
+  );
 }

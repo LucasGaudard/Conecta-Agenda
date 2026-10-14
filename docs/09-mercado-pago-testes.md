@@ -1,6 +1,6 @@
 # Preparação de assinaturas Mercado Pago em teste
 
-Esta etapa não faz chamadas à API Mercado Pago, não cria checkout nem modifica o Neon. O cliente HTTP exige transporte `SIMULATED` injetado. Não existe adapter de rede padrão, comando de sandbox conectado ou alteração nas rotas públicas. `checkoutAvailable` e `cancellationAvailable` continuam falsos e o webhook continua indisponível.
+Esta etapa não faz chamadas à API Mercado Pago nem modifica o Neon. O cliente HTTP exige transporte `SIMULATED` injetado e não existe adapter de rede padrão. A rota `POST /billing/checkout` agora possui fluxo persistente simulado, desativado por padrão. `checkoutAvailable` só pode ser verdadeiro em teste/desenvolvimento com banco local isolado e opt-in explícito. Cancelamento público e webhook continuam indisponíveis.
 
 ## Contratos oficiais usados
 
@@ -48,7 +48,40 @@ O cliente valida as respostas e seus application_id/collector_id, limita paths a
 
 A proteção de duplicatas de criação usa chave e hash do pedido, une chamadas concorrentes e reutiliza resultado na mesma instância. Mesmo falhas ambíguas ficam registradas; timeout ou 409 exige reconciliação, não outro POST. O cancelamento consulta primeiro e evita PUT quando já cancelado. O cache é limitado a 256 criações e falha sem remover entradas para não perder a proteção.
 
-Essa proteção é somente local ao processo, não durável e não compartilhada entre instâncias. Não há garantia documentada de `X-Idempotency-Key` para o POST de assinaturas nas referências consultadas; não foi enviado esse header nem presumida idempotência remota. Antes de habilitar uma rota conectada, implementar reserva/transação da tentativa, snapshot persistente do pedido e reconciliação por referência/ID após reinício, concorrência ou timeout. A chave única da tentativa sozinha não impede dois POSTs externos.
+Essa proteção do cliente é somente local ao processo. O serviço de checkout acrescenta o claim durável descrito abaixo. Não há garantia documentada de `X-Idempotency-Key` para o POST de assinaturas nas referências consultadas; não foi enviado esse header nem presumida idempotência remota. A chave única da tentativa sozinha não impede dois POSTs externos.
+
+## Checkout simulado com persistência
+
+Para preparar um ambiente local descartável, fora de produção, os controles são:
+
+```dotenv
+NODE_ENV=development
+MERCADO_PAGO_ENVIRONMENT=TEST
+BILLING_CHECKOUT_MODE=SIMULATED
+# Exemplo somente; fornecer conexão do banco local isolado pelo ambiente.
+DATABASE_URL=postgresql://USER:PASSWORD@127.0.0.1:5432/conecta_agenda_billing_test
+```
+
+OFF é o default. A combinação acima só é aceita para hosts localhost, 127.0.0.1 ou ::1 e database exatamente conecta_agenda_billing_test. NODE_ENV=production, conexão Neon/remota, outro database, PRODUCTION ou modo LIVE mantêm o fluxo desabilitado antes de qualquer escrita. Não modificar o .env real de produção para testar. O banco isolado precisa do schema e de dados de teste próprios, preparados por procedimento separado; nenhum comando de banco foi executado nesta etapa.
+
+O simulador usa identidade e token fictícios constantes, sem ler credenciais TEST/PRODUCTION. Respostas de planos são geradas a partir dos mapeamentos TEST locais; isso testa a aplicação, não comprova termos reais do Mercado Pago. O token de cartão é fictício e derivado do UUID da tentativa; nenhum token/cardId é aceito do navegador neste modo.
+
+O fluxo usa as tabelas existentes, sem nova migration:
+
+1. Transação curta bloqueia a linha de Subscription com FOR UPDATE, filtrando userId e businessId da sessão, valida ambiente e bloqueio manual e cria/reutiliza BillingCheckoutAttempt. ID, externalReference e idempotencyKey são UUIDs independentes. A reserva é commitada antes de qualquer operação HTTP simulada, inclusive GET do plano.
+2. Preparação valida ProviderPlan TEST, preço interno, mensalidade/BRL e o trial persistido. Falha nesta fase permite repetir somente a preparação, com a mesma tentativa e chave.
+3. Nova transação, sob o mesmo lock, revalida os termos e cria um BillingEvent interno com tópico internal_checkout_simulated, chave única da tentativa, hash do pedido/termos e status PROCESSING. O claim é commitado antes do POST. Não há chamadas HTTP dentro das transações.
+4. Somente o vencedor do claim pode enviar POST. Outra instância ou worker reiniciado encontra o marcador e não envia novamente. O marcador não expira automaticamente nem é liberado por timeout.
+5. Resposta validada grava referências do provedor, tentativa PROVIDER_CREATED e marcador PROCESSED em transação. Nunca escreve status comercial, trialEndsAt, currentPeriodStart ou currentPeriodEnd. Replay usa o ID persistido e a URL canônica validada, sem novo POST.
+6. Falha/timeout/URL inválida/falha de persistência marca FAILED para revisão quando possível; se a marcação também falhar, PROCESSING continua impedindo reenvio. Não iniciar outra tentativa para contornar a incerteza.
+
+O hash é um compromisso persistente dos termos, não um snapshot completo reversível. Não são persistidos corpo com e-mail, token de cartão ou credenciais. Mudança de termos antes do claim impede criação. Antes de um adapter conectado, decidir versionamento/imutabilidade dos planos e o snapshot completo necessário à reconciliação.
+
+`SimulatedCheckoutService.reconcile` é somente uma operação interna testável, sem rota pública: recebe um ID candidato obtido por investigação autorizada e consulta a assinatura via cliente simulado, verificando aplicação, vendedor, plano e externalReference antes de concluir a tentativa original. Nunca faz outro POST. Se o ID é desconhecido ou a consulta falha, manter a revisão pendente. A [busca oficial](https://www.mercadopago.com.br/developers/pt/reference/online-payments/subscriptions/search-preapproval/get.md) oferece filtros como plano/pagador e q livre; não há promessa de filtro exato por externalReference nem de consistência imediata. Resultado vazio não comprova ausência de criação.
+
+O estado de recursos do simulador padrão é em memória e pode desaparecer ao reiniciar. Tentativas já concluídas continuam reutilizáveis pelo ID persistido; uma tentativa ambígua sem ID confirmado fica em revisão. Testes de reconciliação usam um servidor simulado compartilhado. Ainda é necessário ensaiar locks e concorrência com processos independentes em PostgreSQL isolado antes de habilitar sandbox conectado.
+
+O retorno HTTP inclui mode=SIMULATED. O frontend valida HTTPS, host exato www.mercadopago.com.br, path de checkout e um único parâmetro preapproval_id, sem credenciais, porta extra, fragmento ou parâmetros de redirect. Em modo simulado, exibe uma confirmação local e não navega para esse endereço. Nenhum redirect concede acesso.
 
 ## Trial de sete dias: o que precisa ser comprovado
 
@@ -68,4 +101,4 @@ Se não houver alinhamento comprovado, manter checkout desabilitado e decidir um
 
 ## Próxima etapa conectada
 
-Preparar banco e backend isolados, fora do Neon production, com conta vendedora/compradora de teste e mapeamentos TEST próprios. Validar identidade da credencial antes de implementar/autorizar um transporte real. Implementar persistência e reconciliação das tentativas, verificação de webhook e alinhamento do trial. Só então habilitar operações de sandbox sob controle explícito. Não adicionar migrations, seed, backfill ou operações financeiras ao build/start.
+Ensaiar o fluxo persistente em PostgreSQL isolado com processos independentes. Depois preparar backend e contas vendedora/compradora de teste, verificar identidade da credencial, validar o fluxo de autorização/checkout e alinhar trial/primeira cobrança. Decidir snapshot completo e reconciliação automatizada, implementar verificação de webhook e somente então autorizar um adapter conectado em sandbox separado. Nenhuma variável atual habilita rede. Não adicionar migrations, seed, backfill ou operações financeiras ao build/start.

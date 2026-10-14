@@ -534,6 +534,7 @@ export type BillingStatusResponse = BusinessAccessState & {
   providerConfigured: boolean;
   checkoutAvailable: boolean;
   cancellationAvailable: boolean;
+  checkoutMode?: "SIMULATED";
   nextPaymentAt: string | null;
   plan: { name: string; slug: string; priceInCents: number } | null;
   priceInCents: number | null;
@@ -547,4 +548,5 @@ export type BillingCheckoutResponse = {
   checkoutUrl: string;
   provider: "MERCADO_PAGO";
   subscriptionId: string;
+  mode?: "SIMULATED";
 };

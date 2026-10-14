@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@conecta-agenda/ui";
+import { Brand } from "@/components/app/brand";
 
 import { useAuth } from "@/hooks/use-auth";
 import { getOnboardingStatus } from "@/lib/onboarding";
@@ -64,9 +65,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
-      <section className="w-full max-w-md rounded-md border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-950">Criar conta</h1>
+    <main className="auth-background flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+      <section className="w-full max-w-md surface p-8 shadow-sm">
+        <div className="mb-8">
+          <Brand />
+        </div>
+        <h1 className="text-2xl font-bold text-slate-950">Criar conta</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Comece com uma agenda online simples para seu negocio.
         </p>
@@ -77,7 +81,7 @@ export default function RegisterPage() {
               Nome
             </label>
             <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+              className="field-input mt-2"
               id="name"
               autoComplete="name"
               {...register("name")}
@@ -92,7 +96,7 @@ export default function RegisterPage() {
               E-mail
             </label>
             <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+              className="field-input mt-2"
               id="email"
               type="email"
               autoComplete="email"
@@ -108,7 +112,7 @@ export default function RegisterPage() {
               Senha
             </label>
             <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+              className="field-input mt-2"
               id="password"
               type="password"
               autoComplete="new-password"
@@ -124,7 +128,7 @@ export default function RegisterPage() {
               Nome do negocio
             </label>
             <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+              className="field-input mt-2"
               id="businessName"
               {...register("businessName")}
             />
@@ -135,7 +139,7 @@ export default function RegisterPage() {
               WhatsApp
             </label>
             <input
-              className="mt-2 h-10 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+              className="field-input mt-2"
               id="whatsapp"
               inputMode="tel"
               {...register("whatsapp")}
@@ -143,7 +147,10 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            >
               {error}
             </p>
           )}

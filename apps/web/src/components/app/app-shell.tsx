@@ -123,9 +123,21 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 lg:flex">
-      {!blocked && <Sidebar pathname={pathname} />}
-      <div className="min-w-0 flex-1">
+    <div className="workspace min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only z-50 focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:rounded-xl focus:bg-white focus:p-3"
+      >
+        Ir para o conteúdo
+      </a>
+      {!blocked && (
+        <Sidebar
+          pathname={pathname}
+          userName={user.name}
+          businessName={business?.name ?? "Minha conta"}
+        />
+      )}
+      <div className={`min-w-0 ${blocked ? "" : "lg:pl-64"}`}>
         <Header
           accessBlocked={blocked}
           businessName={business?.name ?? "Minha conta"}
@@ -134,7 +146,11 @@ export function AppShell({
           userName={user.name}
           onLogout={handleLogout}
         />
-        <main className="px-4 py-6 lg:px-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+        >
           {access?.requiresPaymentAttention && access.canAccess && (
             <div
               role="status"

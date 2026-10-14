@@ -10,9 +10,8 @@ import {
 } from "lucide-react";
 
 export const appNavItems = [
-  { title: "Assinatura", href: "/settings/billing", icon: DollarSign },
   {
-    title: "Dashboard",
+    title: "Visão geral",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
@@ -22,7 +21,7 @@ export const appNavItems = [
     icon: CalendarDays,
   },
   {
-    title: "Servicos",
+    title: "Serviços",
     href: "/services",
     icon: Wrench,
   },
@@ -37,7 +36,7 @@ export const appNavItems = [
     icon: DollarSign,
   },
   {
-    title: "Horarios",
+    title: "Horários e bloqueios",
     href: "/working-hours",
     icon: Clock3,
   },
@@ -47,8 +46,9 @@ export const appNavItems = [
     icon: UserRound,
   },
   {
-    title: "Configuracoes",
+    title: "Configurações",
     href: "/settings",
     icon: Settings,
   },
+  { title: "Assinatura", href: "/settings/billing", icon: DollarSign },
 ] as const;

@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { AppointmentDTO, AppointmentStatus, CustomerDTO, ServiceDTO } from "@conecta-agenda/types";
+import type {
+  AppointmentDTO,
+  AppointmentStatus,
+  CustomerDTO,
+  ServiceDTO,
+} from "@conecta-agenda/types";
 import {
   CheckCircle2,
   Clock,
@@ -18,6 +23,7 @@ import { Button } from "@conecta-agenda/ui";
 import { cn } from "@conecta-agenda/utils";
 
 import { AppShell } from "@/components/app/app-shell";
+import { AppDialog } from "@/components/app/app-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
 import {
@@ -83,15 +89,22 @@ export default function AgendaPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [creatingAppointment, setCreatingAppointment] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [detailsAppointment, setDetailsAppointment] = useState<AppointmentDTO | null>(null);
+  const [detailsAppointment, setDetailsAppointment] = useState<AppointmentDTO | null>(
+    null,
+  );
   const [rescheduleState, setRescheduleState] = useState<RescheduleState | null>(null);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [loadingRescheduleTimes, setLoadingRescheduleTimes] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [createForm, setCreateForm] = useState<CreateFormState>(() => getEmptyCreateForm(getToday()));
+  const [createForm, setCreateForm] = useState<CreateFormState>(() =>
+    getEmptyCreateForm(getToday()),
+  );
 
-  const activeServices = useMemo(() => services.filter((service) => service.isActive), [services]);
+  const activeServices = useMemo(
+    () => services.filter((service) => service.isActive),
+    [services],
+  );
 
   const loadAppointments = useCallback(async () => {
     if (!token) {
@@ -105,7 +118,12 @@ export default function AgendaPage() {
       const response = await getAppointments(token, { date: selectedDate });
       setAppointments(response.appointments);
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel carregar a agenda.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel carregar a agenda.",
+        setError,
+        logout,
+      );
     } finally {
       setLoadingAppointments(false);
     }
@@ -124,7 +142,12 @@ export default function AgendaPage() {
       setServices(servicesResponse.services);
       setCustomers(customersResponse.customers);
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel carregar servicos e clientes.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel carregar servicos e clientes.",
+        setError,
+        logout,
+      );
     }
   }, [logout, token]);
 
@@ -159,12 +182,19 @@ export default function AgendaPage() {
         setAvailableTimes(response.availableTimes);
         setCreateForm((current) => ({
           ...current,
-          startTime: response.availableTimes.includes(current.startTime) ? current.startTime : "",
+          startTime: response.availableTimes.includes(current.startTime)
+            ? current.startTime
+            : "",
         }));
       })
       .catch((requestError) => {
         setAvailableTimes([]);
-        handleRequestError(requestError, "Nao foi possivel buscar horarios.", setError, logout);
+        handleRequestError(
+          requestError,
+          "Nao foi possivel buscar horarios.",
+          setError,
+          logout,
+        );
       })
       .finally(() => setLoadingTimes(false));
   }, [createForm.date, createForm.serviceId, logout, token]);
@@ -188,17 +218,30 @@ export default function AgendaPage() {
           current
             ? {
                 ...current,
-                startTime: response.availableTimes.includes(current.startTime) ? current.startTime : "",
+                startTime: response.availableTimes.includes(current.startTime)
+                  ? current.startTime
+                  : "",
               }
             : current,
         );
       })
       .catch((requestError) => {
         setRescheduleTimes([]);
-        handleRequestError(requestError, "Nao foi possivel buscar horarios para remarcacao.", setError, logout);
+        handleRequestError(
+          requestError,
+          "Nao foi possivel buscar horarios para remarcacao.",
+          setError,
+          logout,
+        );
       })
       .finally(() => setLoadingRescheduleTimes(false));
-  }, [logout, rescheduleState?.appointment.id, rescheduleState?.appointment.service?.id, rescheduleState?.date, token]);
+  }, [
+    logout,
+    rescheduleState?.appointment.id,
+    rescheduleState?.appointment.service?.id,
+    rescheduleState?.date,
+    token,
+  ]);
 
   function changeDay(days: number) {
     const date = new Date(`${selectedDate}T00:00:00.000Z`);
@@ -247,7 +290,12 @@ export default function AgendaPage() {
       await loadFormData();
       await loadAppointments();
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel criar o agendamento.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel criar o agendamento.",
+        setError,
+        logout,
+      );
     } finally {
       setCreatingAppointment(false);
     }
@@ -267,7 +315,12 @@ export default function AgendaPage() {
       setSuccess("Status atualizado com sucesso.");
       await loadAppointments();
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel atualizar o status.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel atualizar o status.",
+        setError,
+        logout,
+      );
     } finally {
       setSavingId(null);
     }
@@ -293,7 +346,12 @@ export default function AgendaPage() {
       setSuccess("Agendamento cancelado.");
       await loadAppointments();
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel cancelar o agendamento.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel cancelar o agendamento.",
+        setError,
+        logout,
+      );
     } finally {
       setSavingId(null);
     }
@@ -330,7 +388,12 @@ export default function AgendaPage() {
       setRescheduleState(null);
       await loadAppointments();
     } catch (requestError) {
-      handleRequestError(requestError, "Nao foi possivel remarcar o agendamento.", setError, logout);
+      handleRequestError(
+        requestError,
+        "Nao foi possivel remarcar o agendamento.",
+        setError,
+        logout,
+      );
     } finally {
       setSavingId(null);
     }
@@ -339,9 +402,9 @@ export default function AgendaPage() {
   return (
     <AppShell title="Agenda">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <section className="page-heading flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Agenda</h2>
+            <h1 className="text-2xl font-semibold text-slate-950">Agenda</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               Visualize e gerencie seus atendimentos.
             </p>
@@ -352,7 +415,7 @@ export default function AgendaPage() {
           </Button>
         </section>
 
-        <section className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="surface p-4 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <label className="w-full md:max-w-xs">
               <span className="text-sm font-medium text-slate-800">Data</span>
@@ -367,7 +430,11 @@ export default function AgendaPage() {
               <Button type="button" variant="outline" onClick={() => changeDay(-1)}>
                 Dia anterior
               </Button>
-              <Button type="button" variant="outline" onClick={() => setSelectedDate(getToday())}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSelectedDate(getToday())}
+              >
                 Hoje
               </Button>
               <Button type="button" variant="outline" onClick={() => changeDay(1)}>
@@ -378,17 +445,23 @@ export default function AgendaPage() {
         </section>
 
         {showCreateForm && (
-          <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="surface p-5 shadow-sm">
             <FormHeader title="Novo agendamento" onClose={closeCreateForm} />
 
-            <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={handleCreateAppointment}>
+            <form
+              className="mt-5 grid gap-4 sm:grid-cols-2"
+              onSubmit={handleCreateAppointment}
+            >
               <Field label="Servico">
                 <select
                   className="field-input"
                   required
                   value={createForm.serviceId}
                   onChange={(event) =>
-                    setCreateForm((current) => ({ ...current, serviceId: event.target.value }))
+                    setCreateForm((current) => ({
+                      ...current,
+                      serviceId: event.target.value,
+                    }))
                   }
                 >
                   <option value="">Selecione</option>
@@ -418,7 +491,10 @@ export default function AgendaPage() {
                   required
                   value={createForm.startTime}
                   onChange={(event) =>
-                    setCreateForm((current) => ({ ...current, startTime: event.target.value }))
+                    setCreateForm((current) => ({
+                      ...current,
+                      startTime: event.target.value,
+                    }))
                   }
                 >
                   <option value="">{loadingTimes ? "Carregando..." : "Selecione"}</option>
@@ -460,7 +536,10 @@ export default function AgendaPage() {
                       required
                       value={createForm.customerName}
                       onChange={(event) =>
-                        setCreateForm((current) => ({ ...current, customerName: event.target.value }))
+                        setCreateForm((current) => ({
+                          ...current,
+                          customerName: event.target.value,
+                        }))
                       }
                     />
                   </Field>
@@ -487,7 +566,10 @@ export default function AgendaPage() {
                   className="field-input min-h-24 py-2"
                   value={createForm.notes}
                   onChange={(event) =>
-                    setCreateForm((current) => ({ ...current, notes: event.target.value }))
+                    setCreateForm((current) => ({
+                      ...current,
+                      notes: event.target.value,
+                    }))
                   }
                 />
               </Field>
@@ -502,26 +584,37 @@ export default function AgendaPage() {
         )}
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
+            {appointments.length > 0 && (
+              <span className="mt-1 block text-xs">
+                A lista abaixo contém os últimos dados carregados.
+              </span>
+            )}
           </p>
         )}
 
         {success && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          >
             {success}
           </p>
         )}
 
         <section className="space-y-3">
           {loadingAppointments && (
-            <div className="rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+            <div className="surface p-6 text-sm text-slate-600 shadow-sm">
               Carregando agenda...
             </div>
           )}
 
-          {!loadingAppointments && appointments.length === 0 && (
-            <div className="rounded-md border border-slate-200 bg-white p-8 text-center shadow-sm">
+          {!loadingAppointments && !error && appointments.length === 0 && (
+            <div className="surface empty-state p-8 text-center shadow-sm">
               <p className="text-base font-medium text-slate-950">
                 Nenhum atendimento agendado para esta data.
               </p>
@@ -533,10 +626,7 @@ export default function AgendaPage() {
 
           {!loadingAppointments &&
             appointments.map((appointment) => (
-              <article
-                key={appointment.id}
-                className="rounded-md border border-slate-200 bg-white p-5 shadow-sm"
-              >
+              <article key={appointment.id} className="surface p-5 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
@@ -555,23 +645,29 @@ export default function AgendaPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 text-sm text-slate-700">
-                      <span className="rounded-md bg-slate-100 px-2 py-1">
+                      <span className="rounded-xl bg-slate-100 px-2 py-1">
                         {appointment.serviceName}
                       </span>
-                      <span className="rounded-md bg-slate-100 px-2 py-1">
+                      <span className="rounded-xl bg-slate-100 px-2 py-1">
                         {formatCurrencyBRL(appointment.priceInCents)}
                       </span>
-                      <span className="rounded-md bg-slate-100 px-2 py-1">
+                      <span className="rounded-xl bg-slate-100 px-2 py-1">
                         {appointment.durationMinutes} minutos
                       </span>
                     </div>
                     {appointment.notes && (
-                      <p className="max-w-2xl text-sm text-slate-600">{appointment.notes}</p>
+                      <p className="max-w-2xl text-sm text-slate-600">
+                        {appointment.notes}
+                      </p>
                     )}
                   </div>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">
-                    <Button type="button" variant="outline" onClick={() => setDetailsAppointment(appointment)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDetailsAppointment(appointment)}
+                    >
                       <Eye aria-hidden="true" className="size-4" />
                       Detalhes
                     </Button>
@@ -590,13 +686,22 @@ export default function AgendaPage() {
         </section>
 
         {detailsAppointment && (
-          <Modal title="Detalhes do agendamento" onClose={() => setDetailsAppointment(null)}>
+          <Modal
+            title="Detalhes do agendamento"
+            onClose={() => setDetailsAppointment(null)}
+          >
             <div className="grid gap-3 sm:grid-cols-2">
               <Detail label="Cliente">{detailsAppointment.customer.name}</Detail>
-              <Detail label="WhatsApp">{detailsAppointment.customer.whatsapp || "-"}</Detail>
+              <Detail label="WhatsApp">
+                {detailsAppointment.customer.whatsapp || "-"}
+              </Detail>
               <Detail label="Servico">{detailsAppointment.serviceName}</Detail>
-              <Detail label="Preco">{formatCurrencyBRL(detailsAppointment.priceInCents)}</Detail>
-              <Detail label="Duracao">{detailsAppointment.durationMinutes} minutos</Detail>
+              <Detail label="Preco">
+                {formatCurrencyBRL(detailsAppointment.priceInCents)}
+              </Detail>
+              <Detail label="Duracao">
+                {detailsAppointment.durationMinutes} minutos
+              </Detail>
               <Detail label="Data">{detailsAppointment.date}</Detail>
               <Detail label="Horario">
                 {detailsAppointment.startTime} - {detailsAppointment.endTime}
@@ -636,7 +741,9 @@ export default function AgendaPage() {
                     )
                   }
                 >
-                  <option value="">{loadingRescheduleTimes ? "Carregando..." : "Selecione"}</option>
+                  <option value="">
+                    {loadingRescheduleTimes ? "Carregando..." : "Selecione"}
+                  </option>
                   {rescheduleTimes.map((time) => (
                     <option key={time} value={time}>
                       {time}
@@ -645,8 +752,13 @@ export default function AgendaPage() {
                 </select>
               </Field>
               <div className="sm:col-span-2 flex justify-end">
-                <Button type="submit" disabled={savingId === rescheduleState.appointment.id}>
-                  {savingId === rescheduleState.appointment.id ? "Remarcando..." : "Remarcar"}
+                <Button
+                  type="submit"
+                  disabled={savingId === rescheduleState.appointment.id}
+                >
+                  {savingId === rescheduleState.appointment.id
+                    ? "Remarcando..."
+                    : "Remarcar"}
                 </Button>
               </div>
             </form>
@@ -674,7 +786,8 @@ function AppointmentActions({
 }) {
   const canChangeStatus =
     appointment.status !== "CANCELED" && appointment.status !== "COMPLETED";
-  const canReschedule = appointment.status !== "CANCELED" && appointment.status !== "COMPLETED";
+  const canReschedule =
+    appointment.status !== "CANCELED" && appointment.status !== "COMPLETED";
   const messageData = {
     customerName: appointment.customer.name,
     serviceName: appointment.serviceName,
@@ -687,8 +800,13 @@ function AppointmentActions({
     if (!appointment.customer.whatsapp) return null;
     return (
       <Button asChild variant="outline">
-        <a href={createWhatsappLink(appointment.customer.whatsapp, message)} rel="noreferrer" target="_blank">
-          <MessageCircle aria-hidden="true" className="size-4" />{label}
+        <a
+          href={createWhatsappLink(appointment.customer.whatsapp, message)}
+          rel="noreferrer"
+          target="_blank"
+        >
+          <MessageCircle aria-hidden="true" className="size-4" />
+          {label}
         </a>
       </Button>
     );
@@ -697,39 +815,68 @@ function AppointmentActions({
   return (
     <>
       {canChangeStatus && appointment.status !== "CONFIRMED" && (
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => onStatus(appointment, "CONFIRMED")}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => onStatus(appointment, "CONFIRMED")}
+        >
           <UserCheck aria-hidden="true" className="size-4" />
           Confirmar
         </Button>
       )}
       {canChangeStatus && (
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => onStatus(appointment, "COMPLETED")}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => onStatus(appointment, "COMPLETED")}
+        >
           <CheckCircle2 aria-hidden="true" className="size-4" />
           Concluir
         </Button>
       )}
       {canChangeStatus && appointment.status !== "NO_SHOW" && (
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => onStatus(appointment, "NO_SHOW")}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => onStatus(appointment, "NO_SHOW")}
+        >
           <UserX aria-hidden="true" className="size-4" />
           Falta
         </Button>
       )}
       {canReschedule && appointment.service && (
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => onReschedule(appointment)}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => onReschedule(appointment)}
+        >
           <RotateCcw aria-hidden="true" className="size-4" />
           Remarcar
         </Button>
       )}
       {appointment.status !== "CANCELED" && appointment.status !== "COMPLETED" && (
-        <Button type="button" variant="outline" disabled={disabled} onClick={() => onCancel(appointment)}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => onCancel(appointment)}
+        >
           <XCircle aria-hidden="true" className="size-4" />
           Cancelar
         </Button>
       )}
-      {appointment.status === "SCHEDULED" && whatsappButton("Enviar confirmacao", createConfirmationMessage(messageData))}
-      {appointment.status === "CONFIRMED" && whatsappButton("Enviar lembrete", createReminderMessage(messageData))}
-      {appointment.status === "CANCELED" && whatsappButton("Avisar cancelamento", createCancellationMessage(messageData))}
-      {canReschedule && whatsappButton("Avisar remarcacao", createRescheduleMessage(messageData))}
+      {appointment.status === "SCHEDULED" &&
+        whatsappButton("Enviar confirmacao", createConfirmationMessage(messageData))}
+      {appointment.status === "CONFIRMED" &&
+        whatsappButton("Enviar lembrete", createReminderMessage(messageData))}
+      {appointment.status === "CANCELED" &&
+        whatsappButton("Avisar cancelamento", createCancellationMessage(messageData))}
+      {canReschedule &&
+        whatsappButton("Avisar remarcacao", createRescheduleMessage(messageData))}
       {whatsappButton("Falar com cliente")}
     </>
   );
@@ -737,7 +884,12 @@ function AppointmentActions({
 
 function StatusBadge({ status }: { status: AppointmentStatus }) {
   return (
-    <span className={cn("inline-flex h-6 items-center rounded-md px-2 text-xs font-medium", statusStyles[status])}>
+    <span
+      className={cn(
+        "inline-flex h-6 items-center rounded-xl px-2 text-xs font-medium",
+        statusStyles[status],
+      )}
+    >
       {statusLabels[status]}
     </span>
   );
@@ -768,40 +920,38 @@ function Modal({
   onClose: () => void;
   title: string;
 }) {
-  const titleId = `modal-title-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-
   return (
-    <div
-      aria-labelledby={titleId}
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"
-      role="dialog"
-    >
-      <section className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-md bg-white p-5 shadow-xl">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <h3 id={titleId} className="text-lg font-semibold text-slate-950">
-            {title}
-          </h3>
-          <Button autoFocus type="button" variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-        </div>
-        {children}
-      </section>
-    </div>
+    <AppDialog title={title} onClose={onClose}>
+      {children}
+    </AppDialog>
   );
 }
-
-function Detail({ children, className, label }: { children: ReactNode; className?: string; label: string }) {
+function Detail({
+  children,
+  className,
+  label,
+}: {
+  children: ReactNode;
+  className?: string;
+  label: string;
+}) {
   return (
-    <div className={cn("rounded-md border border-slate-200 bg-slate-50 p-3", className)}>
+    <div className={cn("rounded-xl border border-slate-200 bg-slate-50 p-3", className)}>
       <span className="block text-xs font-medium uppercase text-slate-500">{label}</span>
       <span className="mt-1 block text-sm text-slate-800">{children}</span>
     </div>
   );
 }
 
-function Field({ children, className, label }: { children: ReactNode; className?: string; label: string }) {
+function Field({
+  children,
+  className,
+  label,
+}: {
+  children: ReactNode;
+  className?: string;
+  label: string;
+}) {
   return (
     <label className={className}>
       <span className="text-sm font-medium text-slate-800">{label}</span>

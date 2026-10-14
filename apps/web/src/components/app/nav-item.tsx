@@ -17,12 +17,13 @@ export function NavItem({ title, href, icon: Icon, isActive, onClick }: NavItemP
   return (
     <Link
       className={cn(
-        "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
+        "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
         isActive
-          ? "bg-slate-950 text-white"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+          ? "bg-violet-600 text-white shadow-md shadow-violet-200/60"
+          : "text-slate-600 hover:bg-violet-50 hover:text-violet-700",
       )}
       href={href}
+      aria-current={isActive ? "page" : undefined}
       onClick={onClick}
     >
       <Icon aria-hidden="true" className="size-4" />

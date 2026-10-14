@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-import { loadLocalEnv } from "./load-env";
+import { loadIsolatedDevelopmentEnvironment } from "../development-profile.cjs";
 
-loadLocalEnv();
+// Production/test use only their supplied environment; development never reads .env.
+if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
+  loadIsolatedDevelopmentEnvironment();
+}
 
 const rawEnv = {
   ...process.env,

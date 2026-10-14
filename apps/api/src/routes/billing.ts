@@ -5,8 +5,17 @@ import { resolveBusinessAccess } from "../domain/business-access";
 import { z } from "zod";
 import { getBillingCapabilities, getBillingProvider } from "../billing";
 import { BillingProviderError } from "../billing/provider";
+import { CheckoutError } from "../billing/checkout-repository";
+import type { SimulatedCheckoutService } from "../billing/checkout-service";
+import { createDefaultSimulatedCheckout } from "../billing/simulated-checkout";
 
-export async function billingRoutes(app: FastifyInstance) {
+export type BillingRoutesOptions = { checkoutService?: SimulatedCheckoutService };
+
+export async function billingRoutes(
+  app: FastifyInstance,
+  options: BillingRoutesOptions = {},
+) {
+  const checkoutService = options.checkoutService ?? createDefaultSimulatedCheckout();
   for (const operation of ["checkout", "cancel"] as const) {
     app.post(
       `/billing/${operation}`,
@@ -23,12 +32,10 @@ export async function billingRoutes(app: FastifyInstance) {
             .safeParse(request.body ?? {}).success ||
           !z.object({}).strict().safeParse(request.query).success
         )
-          return reply
-            .status(400)
-            .send({
-              code: "BILLING_INVALID_REQUEST",
-              message: "Esta operação não aceita parâmetros externos.",
-            });
+          return reply.status(400).send({
+            code: "BILLING_INVALID_REQUEST",
+            message: "Esta operação não aceita parâmetros externos.",
+          });
         const business = await prisma.business.findUnique({
           where: { id: request.user.businessId },
           select: {
@@ -48,6 +55,27 @@ export async function billingRoutes(app: FastifyInstance) {
         });
         if (!business)
           return reply.status(403).send({ message: "Negócio não encontrado." });
+        if (operation === "checkout" && checkoutService) {
+          try {
+            return reply.send(
+              await checkoutService.checkout({
+                userId: request.user.id,
+                businessId: request.user.businessId,
+              }),
+            );
+          } catch (error) {
+            if (error instanceof CheckoutError)
+              return reply
+                .status(error.statusCode)
+                .send({ code: error.code, message: error.message });
+            return reply
+              .status(503)
+              .send({
+                code: "BILLING_CHECKOUT_UNAVAILABLE",
+                message: "Checkout de teste temporariamente indisponível.",
+              });
+          }
+        }
         const capabilities = getBillingCapabilities();
         try {
           if (!capabilities.providerConfigured)
@@ -57,12 +85,10 @@ export async function billingRoutes(app: FastifyInstance) {
             throw new BillingProviderError("BILLING_PROVIDER_NOT_IMPLEMENTED");
           const subscription = business.user.subscription;
           if (!subscription)
-            return reply
-              .status(409)
-              .send({
-                code: "BILLING_SUBSCRIPTION_NOT_FOUND",
-                message: "Entre em contato com o suporte para definir seu plano.",
-              });
+            return reply.status(409).send({
+              code: "BILLING_SUBSCRIPTION_NOT_FOUND",
+              message: "Entre em contato com o suporte para definir seu plano.",
+            });
           return reply.send(
             await getBillingProvider().createSubscriptionCheckout({
               businessId: business.id,
@@ -109,7 +135,7 @@ export async function billingRoutes(app: FastifyInstance) {
     if (!business) return reply.status(403).send({ message: "Negócio não encontrado." });
     const subscription = business.user.subscription;
     return reply.send({
-      ...getBillingCapabilities(),
+      ...getBillingCapabilities(Boolean(checkoutService)),
       nextPaymentAt: null,
       ...resolveBusinessAccess({ ...business, subscription }),
       plan: subscription?.plan ?? null,

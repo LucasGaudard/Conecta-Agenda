@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@conecta-agenda/ui";
+import { Brand } from "@/components/app/brand";
 
 import { useAuth } from "@/hooks/use-auth";
 import { ApiError } from "@/lib/api";
@@ -131,10 +132,15 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8">
-      <section className="mx-auto w-full max-w-3xl rounded-md border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <main className="auth-background min-h-screen px-4 py-8">
+      <section className="mx-auto w-full max-w-3xl surface p-6 shadow-sm sm:p-8">
         <div>
-          <p className="text-sm font-medium text-slate-500">Onboarding inicial</p>
+          <div className="mb-6">
+            <Brand />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">
+            Prepare sua agenda
+          </p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-950">
             Em poucos minutos sua agenda estara pronta.
           </h1>
@@ -163,7 +169,7 @@ export default function OnboardingPage() {
             />
           </Field>
 
-          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
             {getPublicAppUrl()}/{slug || "seu-slug"}
           </div>
 
@@ -211,7 +217,7 @@ export default function OnboardingPage() {
           </Field>
 
           {error && (
-            <p className="sm:col-span-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="sm:col-span-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </p>
           )}

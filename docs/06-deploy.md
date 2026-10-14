@@ -4,17 +4,17 @@ Nenhum comando de banco ou publicação foi executado no Prompt 18. Use Node >=2
 
 ## Carregamento de ambiente
 
-Fastify não carrega dotenv por conta própria. A API carrega explicitamente `apps/api/.env`, depois `.env` da raiz, antes da validação. Variáveis fornecidas pelo processo prevalecem, inclusive vazias. Funciona em src e dist, sem depender do diretório corrente. NODE_ENV=production ou test no processo desabilita arquivos locais. Produção deve fornecer NODE_ENV antes do processo iniciar.
+Fastify não carrega dotenv por conta própria. Desde o Prompt 39, a API em desenvolvimento exige apenas `apps/api/.env.development.local`, valida o host/database Neon dev e recusa o endpoint de produção direto/pooled. Não lê `apps/api/.env` nem `.env` da raiz como fallback. Configurações herdadas conflitantes são recusadas. NODE_ENV=production ou test usa somente o ambiente fornecido pelo processo; produção deve fornecer NODE_ENV antes de iniciar. Ver [11-desenvolvimento-isolado.md](11-desenvolvimento-isolado.md).
 
-Admin e seed usam o mesmo carregador, sem importar toda a configuração da API. Prisma 6 CLI tem carregamento próprio de `.env` da raiz: execute da raiz, sem arquivos Prisma de ambiente duplicados. Produção deve usar checkout limpo sem `.env` local e variáveis do gerenciador de segredos.
+Admin e seed preservam o carregador anterior (`apps/api/.env`, depois `.env` da raiz), sem importar a configuração da API; não usam automaticamente o perfil dev. Prisma 6 CLI tem carregamento próprio de `.env` da raiz: execute da raiz, sem arquivos Prisma de ambiente duplicados. Produção deve usar checkout limpo sem `.env` local e variáveis do gerenciador de segredos.
 
 Next.js carrega nativamente em `apps/web`: processo, `.env.<ambiente>.local`, `.env.local` (exceto test), `.env.<ambiente>`, `.env`. O `.env` da raiz do monorepo não substitui o arquivo do frontend. NEXT_PUBLIC é incorporado ao build: mudanças exigem novo build.
 
-Prefira `.env` da raiz para API e Prisma local; `apps/api/.env` é override opcional e pode fazer a API apontar a banco diferente da CLI. Não mantenha DATABASE_URL divergente. Nos testes simulados use NODE_ENV=test para isolar arquivos locais.
+O perfil da API dev não modifica a conexão da Prisma CLI. A `.env` da raiz ainda pode apontar para produção: não executar db:*, seed ou provisionamento durante a preparação local. Operações no banco dev exigem procedimento separado com destino confirmado. Nos testes com mocks use NODE_ENV=test e conexão fictícia.
 
 | Uso                                    | Variáveis                                                                                                                                                       |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API local                              | NODE_ENV=development, DATABASE_URL, JWT_SECRET, FRONTEND_URL; API_PORT default 3333, HOST default 0.0.0.0                                                       |
+| API local                              | Perfil dev isolado: DATABASE_URL, DEV_DATABASE_HOST, DEV_DATABASE_NAME e JWT_SECRET próprios; localhost:3001, API_PORT=3333, HOST=127.0.0.1, checkout OFF       |
 | Web local                              | NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL; defaults localhost fora de produção                                                                                   |
 | Render API                             | NODE_ENV=production, DATABASE_URL, JWT_SECRET aleatório >=32 caracteres, FRONTEND_URL HTTPS, PORT fornecida pela plataforma, HOST=0.0.0.0                       |
 | Vercel web                             | NEXT_PUBLIC_API_URL HTTPS da API, NEXT_PUBLIC_APP_URL HTTPS do frontend                                                                                         |
@@ -29,7 +29,7 @@ API_PORT prevalece sobre PORT; no Render deixe API_PORT ausente. FRONTEND_URL é
 
 Mercado Pago permanece scaffold, mesmo com variáveis completas. Provider de e-mail permanece inativo, sem variáveis SMTP/Resend; nenhum desses segredos é necessário para iniciar. JWTs antigos não são revogados após reset, e rate limiter continua por instância.
 
-A preparação HTTP de teste usa somente `MERCADO_PAGO_TEST_ACCESS_TOKEN`, `MERCADO_PAGO_TEST_APPLICATION_ID`, `MERCADO_PAGO_TEST_COLLECTOR_ID`, `MERCADO_PAGO_TEST_BACK_URL` HTTPS e `MERCADO_PAGO_TEST_TIMEOUT_MS` (default 5000, máximo 30000), com `MERCADO_PAGO_ENVIRONMENT=TEST`. Não há fallback para credenciais genéricas ou `MERCADO_PAGO_PRODUCTION_*`. O transporte é exclusivamente simulado e não está conectado às rotas; não adicione credenciais novas ao Render/Vercel para esta etapa. Consulte [09-mercado-pago-testes.md](09-mercado-pago-testes.md) antes de preparar um ambiente isolado conectado.
+A preparação HTTP de teste usa somente `MERCADO_PAGO_TEST_ACCESS_TOKEN`, `MERCADO_PAGO_TEST_APPLICATION_ID`, `MERCADO_PAGO_TEST_COLLECTOR_ID`, `MERCADO_PAGO_TEST_BACK_URL` HTTPS e `MERCADO_PAGO_TEST_TIMEOUT_MS` (default 5000, máximo 30000), com `MERCADO_PAGO_ENVIRONMENT=TEST`. Não há fallback para credenciais genéricas ou `MERCADO_PAGO_PRODUCTION_*`. O checkout persistente agora pode usar um simulador sem credenciais, mediante `BILLING_CHECKOUT_MODE=SIMULATED`, NODE_ENV de teste/desenvolvimento e database local `conecta_agenda_billing_test`. OFF é o default; produção e conexão Neon mantêm o bloqueio. Não adicionar credenciais novas ao Render/Vercel para esta etapa. Consulte [09-mercado-pago-testes.md](09-mercado-pago-testes.md) antes de preparar um ambiente isolado conectado.
 
 ## Provisionamento SUPER_ADMIN
 

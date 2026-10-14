@@ -25,7 +25,9 @@ import {
 const serviceFormSchema = z.object({
   name: z.string().min(2, "Informe o nome do servico."),
   description: z.string().optional(),
-  price: z.string().refine((value) => reaisToCents(value) >= 0, "Informe um preco valido."),
+  price: z
+    .string()
+    .refine((value) => reaisToCents(value) >= 0, "Informe um preco valido."),
   durationMinutes: z
     .number()
     .int()
@@ -235,9 +237,9 @@ export default function ServicesPage() {
   return (
     <AppShell title="Servicos">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <section className="page-heading flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">Servicos</h2>
+            <h1 className="text-2xl font-semibold text-slate-950">Servicos</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               Cadastre os servicos que seus clientes poderao agendar.
             </p>
@@ -248,14 +250,14 @@ export default function ServicesPage() {
           </Button>
         </section>
 
-        <section className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="surface p-4 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap gap-2">
               {statusFilters.map((filter) => (
                 <button
                   key={filter.value}
                   className={cn(
-                    "h-9 rounded-md border px-3 text-sm font-medium transition-colors",
+                    "h-9 rounded-xl border px-3 text-sm font-medium transition-colors",
                     status === filter.value
                       ? "border-slate-950 bg-slate-950 text-white"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
@@ -275,7 +277,8 @@ export default function ServicesPage() {
               />
               <input
                 className="field-input pl-9"
-                placeholder="Buscar por nome ou descricao"
+                aria-label="Buscar serviços por nome ou descrição"
+                placeholder="Buscar por nome ou descrição"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -284,7 +287,7 @@ export default function ServicesPage() {
         </section>
 
         {showForm && (
-          <section className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="surface p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-950">
@@ -299,13 +302,21 @@ export default function ServicesPage() {
               </Button>
             </div>
 
-            <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+            <form
+              className="mt-5 grid gap-4 sm:grid-cols-2"
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <Field label="Nome do servico" error={errors.name?.message}>
                 <input className="field-input" {...register("name")} />
               </Field>
 
               <Field label="Preco" error={errors.price?.message}>
-                <input className="field-input" inputMode="decimal" placeholder="35,00" {...register("price")} />
+                <input
+                  className="field-input"
+                  inputMode="decimal"
+                  placeholder="35,00"
+                  {...register("price")}
+                />
               </Field>
 
               <Field label="Duracao em minutos" error={errors.durationMinutes?.message}>
@@ -317,13 +328,20 @@ export default function ServicesPage() {
                 />
               </Field>
 
-              <label className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                 <input type="checkbox" {...register("isActive")} />
                 Servico ativo
               </label>
 
-              <Field className="sm:col-span-2" label="Descricao" error={errors.description?.message}>
-                <textarea className="field-input min-h-24 py-2" {...register("description")} />
+              <Field
+                className="sm:col-span-2"
+                label="Descricao"
+                error={errors.description?.message}
+              >
+                <textarea
+                  className="field-input min-h-24 py-2"
+                  {...register("description")}
+                />
               </Field>
 
               <div className="sm:col-span-2 flex justify-end">
@@ -336,51 +354,67 @@ export default function ServicesPage() {
         )}
 
         {error && (
-          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
             {error}
+            {services.length > 0 && (
+              <span className="mt-1 block text-xs">
+                A lista abaixo contém os últimos dados carregados.
+              </span>
+            )}
           </p>
         )}
 
         {success && (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+          >
             {success}
           </p>
         )}
 
         <section className="space-y-3">
           {loadingServices && (
-            <div className="rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+            <div className="surface p-6 text-sm text-slate-600 shadow-sm">
               Carregando servicos...
             </div>
           )}
 
-          {emptyState && (
-            <div className="rounded-md border border-slate-200 bg-white p-8 text-center shadow-sm">
+          {emptyState && !error && (
+            <div className="surface empty-state p-8 text-center shadow-sm">
               <p className="text-base font-medium text-slate-950">
-                Voce ainda nao cadastrou nenhum servico.
+                {search || status !== "all"
+                  ? "Nenhum serviço encontrado."
+                  : "Você ainda não cadastrou nenhum serviço."}
               </p>
               <p className="mt-2 text-sm text-slate-600">
-                Comece criando o primeiro item que seus clientes poderao agendar.
+                {search || status !== "all"
+                  ? "Experimente outra busca ou altere o filtro de status."
+                  : "Comece criando o primeiro item que seus clientes poderão agendar."}
               </p>
               <Button className="mt-5" type="button" onClick={openCreateForm}>
-                Cadastrar primeiro servico
+                {search || status !== "all"
+                  ? "Cadastrar serviço"
+                  : "Cadastrar primeiro serviço"}
               </Button>
             </div>
           )}
 
           {!loadingServices &&
             services.map((service) => (
-              <article
-                key={service.id}
-                className="rounded-md border border-slate-200 bg-white p-5 shadow-sm"
-              >
+              <article key={service.id} className="surface p-5 shadow-sm">
                 <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold text-slate-950">{service.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-950">
+                        {service.name}
+                      </h3>
                       <span
                         className={cn(
-                          "inline-flex h-6 items-center rounded-md px-2 text-xs font-medium",
+                          "inline-flex h-6 items-center rounded-xl px-2 text-xs font-medium",
                           service.isActive
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-slate-100 text-slate-600",
@@ -393,17 +427,21 @@ export default function ServicesPage() {
                       {service.description || "Sem descricao."}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-700">
-                      <span className="rounded-md bg-slate-100 px-2 py-1">
+                      <span className="rounded-xl bg-slate-100 px-2 py-1">
                         {formatCurrencyBRL(service.priceInCents)}
                       </span>
-                      <span className="rounded-md bg-slate-100 px-2 py-1">
+                      <span className="rounded-xl bg-slate-100 px-2 py-1">
                         {service.durationMinutes} minutos
                       </span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" onClick={() => openEditForm(service)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => openEditForm(service)}
+                    >
                       <Pencil aria-hidden="true" className="size-4" />
                       Editar
                     </Button>

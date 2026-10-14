@@ -138,6 +138,12 @@ export async function prepareTestSubscriptionCreation(
   return {
     request,
     idempotencyKey: attempt.idempotencyKey,
+    terms: {
+      planId: subscription.planId,
+      providerPlanId: mapping.providerPlanId,
+      priceInCents: subscription.plan.priceInCents,
+      trialEndsAt: end?.toISOString() ?? null,
+    },
     trial: {
       internalTrialEndsAt: end?.toISOString() ?? null,
       remainingMilliseconds: end ? Math.max(0, end.getTime() - now.getTime()) : null,
